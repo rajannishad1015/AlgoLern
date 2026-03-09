@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AlgoLern — DSA Visualizer</title>
+
+  <!--
+  ================================================================
+  ALGOLERN — COMPLETE UI REDESIGN
+  ================================================================
+  AESTHETIC DIRECTION: "Terminal Editorial"
+  - Stark white background with deep black ink typography
+  - Neon lime (#CBFF5E) as the ONLY accent color — electric, sharp
+  - Monospaced + ultra-bold serif pairing — feels like a coding zine
+  - Grid-breaking layout: oversized numbers, diagonal accents, asymmetry
+  - Micro-interactions: cursor glow, card tilt on hover, counter animation
+
+  FONTS USED:
+  - "Space Grotesk" replaced with → "Bebas Neue" for display (FREE on Google)
+  - Body text → "JetBrains Mono" (techy, readable monospace)
+
+  SECTIONS:
+  1. NAV         — Minimal top bar
+  2. HERO        — Giant headline + animated ticker + dual CTA
+  3. STATS ROW   — Oversized numbers with label
+  4. FEATURES    — 6 cards in asymmetric bento grid
+  5. VISUALIZER  — Split-screen code + bar viz
+  6. FOOTER      — Simple ink footer
+
+  AI IMPLEMENTATION NOTES:
+  - All design tokens in :root — easy to retheme
+  - JavaScript is minimal: scroll reveal + counter animation + bar viz
+  - Replace .viz-panel with actual interactive visualizer component
+  - .feat-card href="#" links → wire to actual topic pages
+  ================================================================
+  -->
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+
+  <style>
+
+    /* ============================================================
+       1. DESIGN TOKENS — Edit these to retheme the entire site
+       ============================================================ */
+    :root {
+      --ink:        #0a0a0a;        /* Primary text / headings         */
+      --paper:      #f5f4ef;        /* Off-white page background       */
+      --lime:       #cbff5e;        /* Neon lime — only accent color   */
+      --lime-dark:  #9fd42a;        /* Darker lime for hover states    */
+      --muted:      #888880;        /* Secondary / placeholder text    */
+      --card-bg:    #ffffff;        /* Feature card background         */
+      --card-border:#e0dfd8;        /* Card border color               */
+      --code-bg:    #0f0f0f;        /* Code panel background           */
+
+      --font-display: 'Bebas Neue', sans-serif;   /* Hero/heading font */
+      --font-body:    'JetBrains Mono', monospace; /* Everything else  */
+
+      --radius-sm:  8px;
+      --radius-md:  16px;
+      --radius-lg:  24px;
+
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --t:    0.4s;
+    }
+
+    /* ============================================================
+       2. RESET & BASE
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      cursor: none; /* custom cursor below */
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { font-family: var(--font-body); cursor: none; border: none; }
+
+    /* ============================================================
+       3. CUSTOM CURSOR — Lime circle that follows mouse
+          AI: Remove if not desired, just delete #cursor and JS
+       ============================================================ */
+    #cursor {
+      position: fixed;
+      width: 18px; height: 18px;
+      background: var(--lime);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.12s ease, width 0.3s ease, height 0.3s ease, opacity 0.3s ease;
+      mix-blend-mode: multiply;
+    }
+    #cursor.hover {
+      width: 48px; height: 48px;
+      opacity: 0.6;
+    }
+
+    /* ============================================================
+       4. SCROLLBAR
+       ============================================================ */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: var(--paper); }
+    ::-webkit-scrollbar-thumb { background: var(--ink); }
+
+    /* ============================================================
+       5. LAYOUT UTILITY
+       ============================================================ */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 40px;
+      position: relative;
+    }
+
+    /* ============================================================
+       6. NAVIGATION
+       ============================================================
+       - Bordered bottom strip
+       - Logo left, links center, CTA right
+       - Minimal — lets hero do the talking
+    */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: var(--paper);
+      border-bottom: 1.5px solid var(--ink);
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 58px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+    .logo {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      letter-spacing: 2px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+    /* The "Algo" part highlighted in lime box */
+    .logo .logo-accent {
+      background: var(--ink);
+      color: var(--lime);
+      padding: 0px 6px 2px;
+      margin-right: 2px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: color var(--t) var(--ease);
+      position: relative;
+    }
+    /* Underline slide-in on hover */
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -3px; left: 0;
+      width: 0; height: 1.5px;
+      background: var(--lime-dark);
+      transition: width var(--t) var(--ease);
+    }
+    .nav-links a:hover { color: var(--ink); }
+    .nav-links a:hover::after { width: 100%; }
+
+    /* Primary CTA — lime filled button */
+    .btn-cta {
+      background: var(--lime);
+      color: var(--ink);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 10px 24px;
+      border-radius: 4px;
+      transition: background var(--t) ease, transform 0.2s ease;
+    }
+    .btn-cta:hover {
+      background: var(--lime-dark);
+      transform: translateY(-2px);
+    }
+
+    /* ============================================================
+       7. HERO SECTION
+       ============================================================
+       Design: Giant Bebas Neue heading takes 80vw width.
+       - Off-white background with horizontal ruled lines
+       - Animated rotating badge (circular text)
+       - Stats row embedded below heading
+       - CTA group: filled + ghost
+    */
+    .hero {
+      padding-top: 58px; /* nav height offset */
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Horizontal ruled lines — editorial feel */
+    .hero-rules {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .hero-rules::before,
+    .hero-rules::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      height: 1px;
+      background: var(--card-border);
+    }
+    .hero-rules::before { top: 30%; }
+    .hero-rules::after  { top: 65%; }
+
+    /* Large background watermark number */
+    .hero-watermark {
+      position: absolute;
+      right: -40px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: var(--font-display);
+      font-size: 28vw;
+      color: rgba(0,0,0,0.035);
+      pointer-events: none;
+      user-select: none;
+      line-height: 1;
+      z-index: 0;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      padding: 80px 0 60px;
+    }
+
+    /* Eyebrow label */
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.68rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+    .eyebrow-line {
+      display: inline-block;
+      width: 40px;
+      height: 1px;
+      background: var(--muted);
+    }
+    .eyebrow-tag {
+      background: var(--lime);
+      color: var(--ink);
+      font-weight: 700;
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      padding: 2px 8px;
+      border-radius: 3px;
+    }
+
+    /* MAIN HEADLINE — massive Bebas Neue */
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(5rem, 11vw, 11rem);
+      line-height: 0.92;
+      letter-spacing: 2px;
+      color: var(--ink);
+      max-width: 900px;
+      margin-bottom: 36px;
+    }
+    /* Second line: outlined/stroked text — no fill */
+    .hero-title .stroke {
+      -webkit-text-stroke: 2px var(--ink);
+      color: transparent;
+    }
+    /* Lime highlight on specific word */
+    .hero-title .highlight {
+      position: relative;
+      display: inline-block;
+    }
+    .hero-title .highlight::after {
+      content: '';
+      position: absolute;
+      left: 0; bottom: 12px;
+      width: 100%; height: 18px;
+      background: var(--lime);
+      z-index: -1;
+      transform: skewX(-3deg);
+    }
+
+    /* Sub description */
+    .hero-desc {
+      max-width: 440px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.9;
+      margin-bottom: 44px;
+      border-left: 2px solid var(--lime);
+      padding-left: 16px;
+    }
+
+    /* CTA group */
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .btn-ghost {
+      background: transparent;
+      border: 1.5px solid var(--ink);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 10px 24px;
+      border-radius: 4px;
+      transition: background var(--t) ease, color var(--t) ease;
+    }
+    .btn-ghost:hover { background: var(--ink); color: var(--paper); }
+
+    /* ============================================================
+       8. STATS ROW
+       ============================================================
+       Four oversized counters: algorithms, visualizations, topics, users
+       AI: Wire the JS counter to real data if available
+    */
+    .stats-row {
+      border-top: 1.5px solid var(--ink);
+      border-bottom: 1.5px solid var(--ink);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      position: relative;
+      z-index: 1;
+    }
+    .stat-item {
+      padding: 32px 40px;
+      border-right: 1.5px solid var(--ink);
+      position: relative;
+      overflow: hidden;
+      transition: background var(--t) ease;
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-item:hover { background: var(--lime); }
+    /* Hover changes number color */
+    .stat-item:hover .stat-num { color: var(--ink); }
+
+    .stat-num {
+      font-family: var(--font-display);
+      font-size: 3.5rem;
+      letter-spacing: 1px;
+      color: var(--ink);
+      line-height: 1;
+      transition: color var(--t) ease;
+    }
+    .stat-num sup {
+      font-size: 1.5rem;
+      font-family: var(--font-body);
+      font-weight: 700;
+      vertical-align: super;
+    }
+    .stat-label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-top: 6px;
+      transition: color var(--t) ease;
+    }
+    .stat-item:hover .stat-label { color: var(--ink); }
+
+    /* ============================================================
+       9. FEATURES GRID SECTION
+       ============================================================
+       Asymmetric bento layout:
+       Row 1: [Wide card — 2col] + [Normal card]
+       Row 2: [Normal card] + [Normal card] + [Normal card]
+       Wide card = Sorting (most topics)
+       Each card has: index number, icon, title, algo list, arrow CTA
+    */
+    .features-section {
+      padding: 100px 0;
+    }
+
+    /* Section label row */
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+    .section-label-text {
+      font-size: 0.68rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .section-label-line {
+      flex: 1;
+      height: 1px;
+      background: var(--card-border);
+    }
+    .section-label-num {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      color: var(--muted);
+    }
+
+    /* Section big heading */
+    .section-heading {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      letter-spacing: 1px;
+      line-height: 1;
+      margin-bottom: 64px;
+    }
+
+    /* BENTO GRID */
+    .bento {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: auto auto;
+      gap: 2px; /* tight gap = editorial feel */
+      background: var(--ink); /* gap color = ink = borders */
+      border: 1.5px solid var(--ink);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    /* Feature card */
+    .fcard {
+      background: var(--card-bg);
+      padding: 36px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+      cursor: none;
+      transition: background var(--t) var(--ease);
+      min-height: 280px;
+    }
+    /* Wide card takes 2 columns */
+    .fcard.span2 { grid-column: span 2; }
+
+    .fcard:hover { background: var(--lime); }
+    /* On hover, muted text becomes ink */
+    .fcard:hover .fcard-num,
+    .fcard:hover .fcard-algos li,
+    .fcard:hover .fcard-cta { color: var(--ink); }
+    .fcard:hover .fcard-icon { border-color: var(--ink); background: rgba(0,0,0,0.07); }
+
+    /* Index number — top left corner */
+    .fcard-num {
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      color: #ccc;
+      letter-spacing: 2px;
+      transition: color var(--t);
+    }
+
+    /* Icon circle */
+    .fcard-icon {
+      width: 48px; height: 48px;
+      border: 1.5px solid var(--card-border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      transition: border-color var(--t), background var(--t);
+    }
+
+    /* Card title */
+    .fcard-title {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      letter-spacing: 1px;
+      line-height: 1;
+    }
+
+    /* Badge: topic count */
+    .fcard-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: var(--ink);
+      color: var(--lime);
+      padding: 4px 10px;
+      border-radius: 3px;
+      width: fit-content;
+    }
+    .fcard:hover .fcard-badge {
+      background: rgba(0,0,0,0.12);
+      color: var(--ink);
+    }
+
+    /* Algorithm list */
+    .fcard-algos {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-top: auto;
+    }
+    .fcard-algos li {
+      font-size: 0.72rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: color var(--t);
+    }
+    .fcard-algos li::before {
+      content: '→';
+      font-size: 0.65rem;
+      opacity: 0.5;
+    }
+
+    /* Card CTA */
+    .fcard-cta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding-top: 16px;
+      border-top: 1px solid var(--card-border);
+      transition: color var(--t);
+    }
+    .fcard:hover .fcard-cta { border-top-color: rgba(0,0,0,0.15); }
+    .cta-arrow {
+      width: 28px; height: 28px;
+      border: 1.5px solid currentColor;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      transition: transform 0.3s ease;
+    }
+    .fcard:hover .cta-arrow { transform: rotate(45deg); }
+
+    /* ============================================================
+       10. VISUALIZER SECTION
+       ============================================================
+       Left: code editor panel (dark bg)
+       Right: description + feature bullets
+       The animated array bars show "sorting in progress"
+       AI: Replace left panel with the actual interactive component
+    */
+    .viz-section {
+      padding: 100px 0;
+      border-top: 1.5px solid var(--ink);
+    }
+
+    .viz-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    /* === Code panel (left) === */
+    .code-panel {
+      background: var(--code-bg);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1.5px solid #1f1f1f;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.3);
+    }
+
+    .code-panel-header {
+      background: #1a1a1a;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #2a2a2a;
+    }
+    /* macOS-style window dots */
+    .wdots { display: flex; gap: 7px; }
+    .wdot { width: 11px; height: 11px; border-radius: 50%; }
+    .wdot-r { background: #ff5f57; }
+    .wdot-y { background: #febc2e; }
+    .wdot-g { background: #28c840; }
+
+    .panel-filename {
+      font-size: 0.68rem;
+      color: #555;
+      letter-spacing: 0.05em;
+    }
+    .panel-step-badge {
+      margin-left: auto;
+      background: var(--lime);
+      color: var(--ink);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 3px 10px;
+      border-radius: 3px;
+    }
+
+    /* Code lines area */
+    .code-body { padding: 24px; }
+    .cl {
+      display: flex;
+      gap: 20px;
+      font-size: 0.75rem;
+      line-height: 2;
+      color: #555;
+    }
+    .cl.active-line {
+      background: rgba(203,255,94,0.08);
+      border-left: 2px solid var(--lime);
+      margin-left: -24px;
+      padding-left: 22px;
+      color: #eee;
+    }
+    .ln { color: #333; min-width: 14px; user-select: none; }
+    .kw  { color: #c792ea; }
+    .fn  { color: var(--lime); }
+    .cm  { color: #3a3a3a; font-style: italic; }
+    .num { color: #f78c6c; }
+    .op  { color: #89ddff; }
+
+    /* Array visualization bars */
+    .array-visual {
+      padding: 20px 24px;
+      border-top: 1px solid #1f1f1f;
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 100px;
+      background: #080808;
+    }
+    .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .bar {
+      width: 100%;
+      border-radius: 3px 3px 0 0;
+      transition: height 0.5s var(--ease), background 0.4s ease;
+      background: #2a2a2a;
+    }
+    .bar-label { font-size: 0.6rem; color: #444; }
+
+    /* Complexity tracker row */
+    .complexity-row {
+      padding: 12px 24px;
+      border-top: 1px solid #1a1a1a;
+      display: flex;
+      gap: 24px;
+    }
+    .cplx-item { font-size: 0.65rem; color: #444; }
+    .cplx-item span { color: var(--lime); font-weight: 700; }
+
+    /* === Right copy (visualizer section) === */
+    .viz-copy .section-heading { margin-bottom: 20px; }
+    .viz-copy p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.9;
+      margin-bottom: 36px;
+    }
+
+    /* Feature list */
+    .viz-feats { display: flex; flex-direction: column; gap: 20px; }
+    .vf-item {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 16px;
+      align-items: flex-start;
+      padding: 16px;
+      border: 1.5px solid var(--card-border);
+      border-radius: var(--radius-sm);
+      transition: border-color var(--t) ease, background var(--t) ease;
+    }
+    .vf-item:hover { border-color: var(--lime-dark); background: #fafff0; }
+    .vf-icon {
+      width: 40px; height: 40px;
+      background: var(--ink);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+    .vf-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      letter-spacing: 0.02em;
+    }
+    .vf-desc {
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* ============================================================
+       11. TICKER MARQUEE STRIP
+       ============================================================
+       Horizontal scrolling list of algo names — adds energy
+       Runs between features and visualizer sections
+    */
+    .ticker-strip {
+      border-top: 1.5px solid var(--ink);
+      border-bottom: 1.5px solid var(--ink);
+      background: var(--ink);
+      color: var(--lime);
+      overflow: hidden;
+      padding: 12px 0;
+      white-space: nowrap;
+    }
+    .ticker-track {
+      display: inline-flex;
+      gap: 48px;
+      animation: ticker 22s linear infinite;
+    }
+    .ticker-item {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      letter-spacing: 3px;
+      display: flex;
+      align-items: center;
+      gap: 48px;
+    }
+    .ticker-item::after {
+      content: '◆';
+      color: rgba(203,255,94,0.3);
+      font-size: 0.6rem;
+    }
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ============================================================
+       12. FOOTER
+       ============================================================ */
+    footer {
+      border-top: 1.5px solid var(--ink);
+      padding: 48px 0;
+    }
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .footer-logo {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      letter-spacing: 2px;
+    }
+    .footer-logo .fa { background: var(--ink); color: var(--lime); padding: 0 4px; }
+    .footer-note {
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+    .footer-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+    .footer-links a {
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: color var(--t) ease;
+    }
+    .footer-links a:hover { color: var(--ink); }
+
+    /* ============================================================
+       13. SCROLL REVEAL UTILITY
+       ============================================================
+       Add class .reveal to any element.
+       JS IntersectionObserver adds .in when element enters viewport.
+    */
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+    }
+    .reveal.in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ============================================================
+       14. RESPONSIVE
+       ============================================================ */
+    @media (max-width: 900px) {
+      .bento { grid-template-columns: 1fr; }
+      .fcard.span2 { grid-column: span 1; }
+      .viz-grid { grid-template-columns: 1fr; }
+      .code-panel { display: none; } /* hide on mobile, show text only */
+      .stats-row { grid-template-columns: repeat(2,1fr); }
+      .nav-links { display: none; }
+      .hero-title { font-size: 4.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Custom cursor dot (follows mouse) -->
+  <div id="cursor"></div>
+
+  <!-- ============================================================
+       NAVIGATION
+       Sticky top bar with logo, links, and CTA button
+       AI: wire nav links to actual section/page routes
+       ============================================================ -->
+  <nav>
+    <div class="nav-inner">
+      <!-- Logo: "Algo" in black-bg lime box + "Lern" plain -->
+      <div class="logo">
+        <span class="logo-accent">ALGO</span>LERN
+      </div>
+
+      <ul class="nav-links">
+        <li><a href="#features">Topics</a></li>
+        <li><a href="#viz">Visualizer</a></li>
+        <li><a href="#">Practice</a></li>
+        <li><a href="#">Pricing</a></li>
+      </ul>
+
+      <button class="btn-cta">Start Learning →</button>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       HERO SECTION
+       Main value proposition area
+       - Eyebrow tag (status pill)
+       - Oversized 2-line heading (solid + outlined text)
+       - Short description with left border accent
+       - Two CTA buttons
+       ============================================================ -->
+  <section class="hero">
+    <!-- Horizontal ruled lines for editorial feel -->
+    <div class="hero-rules"></div>
+    <!-- Large background watermark -->
+    <div class="hero-watermark">DSA</div>
+
+    <div class="container">
+      <div class="hero-content">
+
+        <!-- Eyebrow label with lime tag -->
+        <div class="hero-eyebrow">
+          <span class="eyebrow-line"></span>
+          <span class="eyebrow-tag">Interactive Platform</span>
+          <span>37+ Algorithms · Step-by-step Visualizations</span>
+        </div>
+
+        <!-- Main headline: Bebas Neue, massive size
+             Line 1 = solid fill
+             Line 2 = outlined/stroked text (visually contrast)
+        -->
+        <h1 class="hero-title">
+          SEE THE <span class="highlight">LOGIC.</span><br/>
+          <span class="stroke">UNDERSTAND</span><br/>
+          THE PATTERN.
+        </h1>
+
+        <!-- Sub description with lime left-border -->
+        <p class="hero-desc">
+          A fully interactive DSA platform. Watch algorithms execute
+          step-by-step, see exact operation complexity, and master
+          how each structure works — visually, not theoretically.
+        </p>
+
+        <!-- CTA buttons -->
+        <div class="hero-actions">
+          <button class="btn-cta">▶ Start Visualizing</button>
+          <button class="btn-ghost">Browse All Topics ↓</button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       STATS ROW
+       4 counters: algorithms, visualizations, categories, learners
+       Hover = lime background takeover on each cell
+       AI: .stat-num data-target attribute drives JS counter animation
+       ============================================================ -->
+  <div class="stats-row">
+    <div class="stat-item">
+      <!-- data-target = final number for counter animation -->
+      <div class="stat-num" data-target="37">0<sup>+</sup></div>
+      <div class="stat-label">Algorithms covered</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" data-target="37">0</div>
+      <div class="stat-label">Live visualizations</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" data-target="6">0</div>
+      <div class="stat-label">Topic categories</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" data-target="1000">0<sup>+</sup></div>
+      <div class="stat-label">Active learners</div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       FEATURES / TOPICS GRID
+       Bento layout: row 1 = wide(2col) + 1col; row 2 = 3x 1col
+       Each card: index, icon, badge, title, algo list, cta row
+       AI: href="#" → replace with actual topic/page routes
+       ============================================================ -->
+  <section class="features-section" id="features">
+    <div class="container">
+
+      <!-- Section label row -->
+      <div class="section-label reveal">
+        <span class="section-label-text">// everything you need</span>
+        <div class="section-label-line"></div>
+        <span class="section-label-num">01</span>
+      </div>
+
+      <h2 class="section-heading reveal">
+        COMPLETE<br/>COVERAGE.
+      </h2>
+
+      <!-- BENTO GRID (grid gap = black = visible borders) -->
+      <div class="bento">
+
+        <!-- CARD 1: SORTING — wide (2-col) -->
+        <div class="fcard span2 reveal">
+          <div class="fcard-num">01 / 06</div>
+          <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+            <div class="fcard-icon">↕</div>
+            <h3 class="fcard-title">SORTING</h3>
+            <span class="fcard-badge">⬛ 8 Topics</span>
+          </div>
+          <ul class="fcard-algos">
+            <li>Bubble Sort — swap highlighting, pass counter</li>
+            <li>Merge Sort — recursive call tree animation</li>
+            <li>Quick Sort — pivot selection + partition</li>
+            <li>Heap, Insertion, Selection, Radix, Shell Sort</li>
+          </ul>
+          <div class="fcard-cta">
+            <span>Explore Sorting</span>
+            <div class="cta-arrow">↗</div>
+          </div>
+        </div>
+
+        <!-- CARD 2: SEARCHING -->
+        <div class="fcard reveal">
+          <div class="fcard-num">02 / 06</div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div class="fcard-icon">⌕</div>
+            <span class="fcard-badge">⬛ 5 Topics</span>
+          </div>
+          <h3 class="fcard-title">SEARCHING</h3>
+          <ul class="fcard-algos">
+            <li>Binary Search + midpoint trace</li>
+            <li>Linear Search scan view</li>
+            <li>Jump, Exponential, Interpolation</li>
+          </ul>
+          <div class="fcard-cta">
+            <span>Try Searching</span>
+            <div class="cta-arrow">↗</div>
+          </div>
+        </div>
+
+        <!-- CARD 3: DATA STRUCTURES -->
+        <div class="fcard reveal">
+          <div class="fcard-num">03 / 06</div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div class="fcard-icon">⬡</div>
+            <span class="fcard-badge">⬛ 7 Topics</span>
+          </div>
+          <h3 class="fcard-title">DATA<br/>STRUCTURES</h3>
+          <ul class="fcard-algos">
+            <li>Arrays, Linked Lists, Stacks</li>
+            <li>Queues, Hash Tables, Trie</li>
+            <li>Segment Tree</li>
+          </ul>
+          <div class="fcard-cta">
+            <span>See Structures</span>
+            <div class="cta-arrow">↗</div>
+          </div>
+        </div>
+
+        <!-- CARD 4: TREES -->
+        <div class="fcard reveal">
+          <div class="fcard-num">04 / 06</div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div class="fcard-icon">🌿</div>
+            <span class="fcard-badge">⬛ 6 Topics</span>
+          </div>
+          <h3 class="fcard-title">TREES</h3>
+          <ul class="fcard-algos">
+            <li>BST — insert, delete, search</li>
+            <li>AVL & Red-Black rotations</li>
+            <li>BFS / DFS traversal live</li>
+          </ul>
+          <div class="fcard-cta">
+            <span>Grow the Tree</span>
+            <div class="cta-arrow">↗</div>
+          </div>
+        </div>
+
+        <!-- CARD 5: GRAPH ALGORITHMS -->
+        <div class="fcard reveal">
+          <div class="fcard-num">05 / 06</div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div class="fcard-icon">◎</div>
+            <span class="fcard-badge">⬛ 7 Topics</span>
+          </div>
+          <h3 class="fcard-title">GRAPH<br/>ALGORITHMS</h3>
+          <ul class="fcard-algos">
+            <li>Dijkstra's shortest path</li>
+            <li>Kruskal's MST, Prim's</li>
+            <li>Topological Sort, Bellman-Ford</li>
+          </ul>
+          <div class="fcard-cta">
+            <span>Map the Graph</span>
+            <div class="cta-arrow">↗</div>
+          </div>
+        </div>
+
+        <!-- CARD 6: ADVANCED ALGORITHMS -->
+        <div class="fcard reveal">
+          <div class="fcard-num">06 / 06</div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div class="fcard-icon">⚡</div>
+            <span class="fcard-badge">⬛ 4 Topics</span>
+          </div>
+          <h3 class="fcard-title">ADVANCED</h3>
+          <ul class="fcard-algos">
+            <li>Dynamic Programming patterns</li>
+            <li>Backtracking, Greedy</li>
+            <li>Divide & Conquer</li>
+          </ul>
+          <div class="fcard-cta">
+            <span>Level Up</span>
+            <div class="cta-arrow">↗</div>
+          </div>
+        </div>
+
+      </div><!-- /bento -->
+    </div>
+  </section>
+
+  <!-- ============================================================
+       TICKER MARQUEE — scrolling algorithm names strip
+       Runs between Features and Visualizer sections
+       AI: update the names list as more algos are added
+       ============================================================ -->
+  <div class="ticker-strip" aria-hidden="true">
+    <!-- Duplicated track = seamless infinite loop -->
+    <div class="ticker-track">
+      <div class="ticker-item">BUBBLE SORT</div>
+      <div class="ticker-item">BINARY SEARCH</div>
+      <div class="ticker-item">MERGE SORT</div>
+      <div class="ticker-item">DIJKSTRA</div>
+      <div class="ticker-item">AVL TREE</div>
+      <div class="ticker-item">QUICK SORT</div>
+      <div class="ticker-item">BFS / DFS</div>
+      <div class="ticker-item">DYNAMIC PROGRAMMING</div>
+      <div class="ticker-item">KRUSKAL'S MST</div>
+      <div class="ticker-item">HEAP SORT</div>
+      <!-- Duplicate for seamless loop -->
+      <div class="ticker-item">BUBBLE SORT</div>
+      <div class="ticker-item">BINARY SEARCH</div>
+      <div class="ticker-item">MERGE SORT</div>
+      <div class="ticker-item">DIJKSTRA</div>
+      <div class="ticker-item">AVL TREE</div>
+      <div class="ticker-item">QUICK SORT</div>
+      <div class="ticker-item">BFS / DFS</div>
+      <div class="ticker-item">DYNAMIC PROGRAMMING</div>
+      <div class="ticker-item">KRUSKAL'S MST</div>
+      <div class="ticker-item">HEAP SORT</div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       VISUALIZER FEATURE SECTION
+       Left: fake code editor with animated array bars
+       Right: description + 3 feature bullet cards
+       AI: Replace .code-panel with the actual visualizer component
+       ============================================================ -->
+  <section class="viz-section" id="viz">
+    <div class="container">
+      <div class="viz-grid">
+
+        <!-- LEFT: Code panel with live bars -->
+        <!-- AI: This entire .code-panel gets replaced with your
+             actual interactive step-through visualizer component -->
+        <div class="code-panel reveal">
+          <!-- Window chrome: colored dots + filename + step badge -->
+          <div class="code-panel-header">
+            <div class="wdots">
+              <div class="wdot wdot-r"></div>
+              <div class="wdot wdot-y"></div>
+              <div class="wdot wdot-g"></div>
+            </div>
+            <span class="panel-filename">bubble_sort.py</span>
+            <span class="panel-step-badge" id="stepBadge">STEP 1 / 14</span>
+          </div>
+
+          <!-- Code lines — active-line class highlights current step
+               AI: Drive active-line via step state in your visualizer -->
+          <div class="code-body">
+            <div class="cl"><span class="ln">1</span><span class="kw">def </span><span class="fn">bubble_sort</span>(arr):</div>
+            <div class="cl"><span class="ln">2</span>&nbsp;&nbsp;<span class="cm"># n = number of elements to sort</span></div>
+            <div class="cl"><span class="ln">3</span>&nbsp;&nbsp;n <span class="op">=</span> <span class="fn">len</span>(arr)</div>
+            <div class="cl"><span class="ln">4</span>&nbsp;&nbsp;<span class="kw">for </span>i <span class="kw">in</span> <span class="fn">range</span>(n):</div>
+            <div class="cl active-line" id="activeLine"><span class="ln">5</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for </span>j <span class="kw">in</span> <span class="fn">range</span>(<span class="num">0</span>, n<span class="op">-</span>i<span class="op">-</span><span class="num">1</span>):</div>
+            <div class="cl"><span class="ln">6</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if </span>arr[j] <span class="op">&gt;</span> arr[j<span class="op">+</span><span class="num">1</span>]:</div>
+            <div class="cl"><span class="ln">7</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arr[j], arr[j<span class="op">+</span><span class="num">1</span>] <span class="op">=</span> arr[j<span class="op">+</span><span class="num">1</span>], arr[j]</div>
+            <div class="cl"><span class="ln">8</span>&nbsp;&nbsp;<span class="kw">return </span>arr</div>
+          </div>
+
+          <!-- Animated array bar visualization
+               AI: Wire these bars to actual algorithm state / array values -->
+          <div class="array-visual" id="arrayViz"></div>
+
+          <!-- Complexity tracker row
+               AI: Update time/space values dynamically per algorithm -->
+          <div class="complexity-row">
+            <div class="cplx-item">Time: <span id="timeComplexity">O(n²)</span></div>
+            <div class="cplx-item">Space: <span>O(1)</span></div>
+            <div class="cplx-item">Comparisons: <span id="compCount">0</span></div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Copy and feature bullets -->
+        <div class="viz-copy reveal">
+          <div class="section-label" style="margin-bottom:20px;">
+            <span class="section-label-text">// interactive engine</span>
+            <div class="section-label-line"></div>
+            <span class="section-label-num">02</span>
+          </div>
+
+          <h2 class="section-heading">
+            WATCH CODE<br/>RUN LIVE.
+          </h2>
+
+          <p>
+            Not just a pretty animation — real algorithm execution,
+            traced line-by-line so you understand every decision
+            the code makes. Pause, rewind, replay at your speed.
+          </p>
+
+          <!-- Feature bullets (3 cards) -->
+          <div class="viz-feats">
+            <div class="vf-item">
+              <div class="vf-icon">▶</div>
+              <div>
+                <div class="vf-title">Step-through Execution</div>
+                <div class="vf-desc">Pause and rewind any algorithm at any point. Watch each comparison and swap happen.</div>
+              </div>
+            </div>
+            <div class="vf-item">
+              <div class="vf-icon">⏱</div>
+              <div>
+                <div class="vf-title">Live Complexity Meter</div>
+                <div class="vf-desc">Big-O tracked in real time as operations execute. See why O(n²) slows down.</div>
+              </div>
+            </div>
+            <div class="vf-item">
+              <div class="vf-icon">✎</div>
+              <div>
+                <div class="vf-title">Custom Input</div>
+                <div class="vf-desc">Enter your own arrays, trees, and graphs. See how the algorithm handles your data.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+       Simple ink footer with logo, copyright, and links
+       ============================================================ -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-logo"><span class="fa">ALGO</span>LERN</div>
+        <p class="footer-note">© 2025 AlgoLern · Built for serious learners.</p>
+        <ul class="footer-links">
+          <li><a href="#">Privacy</a></li>
+          <li><a href="#">Terms</a></li>
+          <li><a href="#">GitHub</a></li>
+          <li><a href="#">Discord</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ============================================================
+       JAVASCRIPT
+       ============================================================
+       Three independent scripts:
+       1) CURSOR   — custom lime cursor that tracks mouse
+       2) REVEAL   — IntersectionObserver scroll-reveal for .reveal
+       3) COUNTER  — animated number count-up on stats row (runs once)
+       4) BAR VIZ  — animated bubble-sort bar chart in code panel
+  -->
+  <script>
+    // ─────────────────────────────────────────────
+    // 1) CUSTOM CURSOR
+    // Tracks mouse position; adds .hover class on
+    // interactive elements for scale effect.
+    // AI: Remove #cursor div + this block if unwanted
+    // ─────────────────────────────────────────────
+    const cursor = document.getElementById('cursor');
+    document.addEventListener('mousemove', e => {
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top  = e.clientY + 'px';
+    });
+    document.querySelectorAll('a, button, .fcard, .vf-item, .stat-item').forEach(el => {
+      el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+      el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+    });
+
+    // ─────────────────────────────────────────────
+    // 2) SCROLL REVEAL
+    // Adds .in to .reveal elements when they enter
+    // viewport (threshold: 15%). Staggered via delay.
+    // ─────────────────────────────────────────────
+    const revEls = document.querySelectorAll('.reveal');
+    const revObs = new IntersectionObserver(entries => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          e.target.style.transitionDelay = (i % 4) * 0.1 + 's';
+          e.target.classList.add('in');
+          revObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    revEls.forEach(el => revObs.observe(el));
+
+    // ─────────────────────────────────────────────
+    // 3) COUNTER ANIMATION
+    // Runs once when stats row enters viewport.
+    // Reads data-target attr from .stat-num and
+    // counts up from 0 to target over ~1.5s.
+    // AI: Keep or replace with actual data fetch
+    // ─────────────────────────────────────────────
+    const statNums = document.querySelectorAll('.stat-num[data-target]');
+    let counted = false;
+    const countObs = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !counted) {
+        counted = true;
+        statNums.forEach(el => {
+          const target = +el.dataset.target;
+          const hasSup = el.querySelector('sup');
+          const sup = hasSup ? hasSup.outerHTML : '';
+          let current = 0;
+          const step = target / 60; // 60 frames
+          const timer = setInterval(() => {
+            current = Math.min(current + step, target);
+            el.innerHTML = Math.floor(current) + sup;
+            if (current >= target) clearInterval(timer);
+          }, 24);
+        });
+      }
+    }, { threshold: 0.5 });
+    if (statNums[0]) countObs.observe(statNums[0].closest('.stats-row') || statNums[0]);
+
+    // ─────────────────────────────────────────────
+    // 4) ANIMATED BAR VISUALIZER
+    // Builds colored bars for array values.
+    // Simulates bubble sort — swaps two bars every 650ms.
+    // Active bars turn lime (comparing) or gold (swapping).
+    // AI: Replace this with real algorithm step-state driver.
+    //     Bar height = value/max * container height
+    // ─────────────────────────────────────────────
+    const vizContainer = document.getElementById('arrayViz');
+    const compCountEl  = document.getElementById('compCount');
+    let vals = [64, 34, 25, 12, 22, 11, 90, 45];
+    let comparisons = 0;
+
+    const BAR_COLORS = {
+      default:  '#2a2a2a',
+      compare:  '#cbff5e',   /* lime — two bars being compared */
+      swap:     '#f5c400',   /* gold — swap happening          */
+    };
+
+    function buildBars() {
+      vizContainer.innerHTML = '';
+      const max = Math.max(...vals);
+      vals.forEach((v, i) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'bar-wrap';
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.id = 'b' + i;
+        bar.style.height = Math.max((v / max) * 68, 6) + 'px';
+        bar.style.background = BAR_COLORS.default;
+        const lbl = document.createElement('div');
+        lbl.className = 'bar-label';
+        lbl.textContent = v;
+        wrap.appendChild(bar); wrap.appendChild(lbl);
+        vizContainer.appendChild(wrap);
+      });
+    }
+
+    function colorBar(i, col) {
+      const b = document.getElementById('b' + i);
+      if (b) b.style.background = col;
+    }
+
+    function resetBars() { vals.forEach((_, i) => colorBar(i, BAR_COLORS.default)); }
+
+    buildBars();
+    let si = 0, sj = 0, sorted = vals.length;
+
+    setInterval(() => {
+      resetBars();
+      if (sj >= sorted - 1) { sj = 0; si++; if (si >= sorted) { si = 0; sorted = vals.length; } }
+      colorBar(sj, BAR_COLORS.compare);
+      colorBar(sj + 1, BAR_COLORS.compare);
+      comparisons++;
+      if (compCountEl) compCountEl.textContent = comparisons;
+
+      if (vals[sj] > vals[sj + 1]) {
+        [vals[sj], vals[sj + 1]] = [vals[sj + 1], vals[sj]];
+        buildBars();
+        colorBar(sj, BAR_COLORS.swap);
+        colorBar(sj + 1, BAR_COLORS.swap);
+      }
+      sj++;
+    }, 650);
+
+  </script>
+</body>
+</html>
