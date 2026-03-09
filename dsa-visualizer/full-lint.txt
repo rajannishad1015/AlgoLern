@@ -1,0 +1,517 @@
+
+> dsa-visualizer@0.1.0 lint
+> eslint
+
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\data-structures\deque\page.tsx
+  78:6   warning  React Hook useEffect has missing dependencies: 'resetVisualizer', 'setAlgorithmId', and 'setSteps'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   react-hooks/exhaustive-deps
+  82:30  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\data-structures\deque\page.tsx:82:30
+  80 |   useEffect(() => {
+  81 |     const step = steps[currentStepIndex];
+> 82 |     if (step?.values?.deque) setDeque(step.values.deque as DequeItem[]);
+     |                              ^^^^^^^^ Avoid calling setState() directly within an effect
+  83 |     setActiveIndices(step?.indices ?? []);
+  84 |   }, [currentStepIndex, steps]);
+  85 |  react-hooks/set-state-in-effect
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\data-structures\doubly-linked-list\page.tsx
+  69:6  warning  React Hook useEffect has missing dependencies: 'defaultOps', 'resetVisualizer', 'setAlgorithmId', and 'setSteps'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
+  74:7  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\data-structures\doubly-linked-list\page.tsx:74:7
+  72 |     const step = steps[currentStepIndex];
+  73 |     if (step?.values?.nodes) {
+> 74 |       setCurrentNodes(step.values.nodes as DLLNode[]);
+     |       ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  75 |     }
+  76 |   }, [currentStepIndex, steps]);
+  77 |  react-hooks/set-state-in-effect
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\data-structures\hash-table\page.tsx
+  29:77  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react/no-unescaped-entities
+  29:89  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react/no-unescaped-entities
+  31:73  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react/no-unescaped-entities
+  31:87  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react/no-unescaped-entities
+  71:6   warning  React Hook useEffect has missing dependencies: 'resetVisualizer', 'setAlgorithmId', and 'setSteps'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react-hooks/exhaustive-deps
+  75:30  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\data-structures\hash-table\page.tsx:75:30
+  73 |   useEffect(() => {
+  74 |     const step = steps[currentStepIndex];
+> 75 |     if (step?.values?.table) setTableState(step.values.table as HashTableState);
+     |                              ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  76 |     if (step?.indices?.[0] !== undefined) setHighlightBucket(step.indices[0]);
+  77 |     else setHighlightBucket(undefined);
+  78 |   }, [currentStepIndex, steps]);  react-hooks/set-state-in-effect
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\data-structures\linked-list\page.tsx
+  20:8  error    Unexpected any. Specify a different type                                                                       @typescript-eslint/no-explicit-any
+  45:6  warning  React Hook useEffect has a missing dependency: 'operations'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\data-structures\priority-queue\page.tsx
+  88:6   warning  React Hook useEffect has missing dependencies: 'resetVisualizer', 'setAlgorithmId', and 'setSteps'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react-hooks/exhaustive-deps
+  92:29  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\data-structures\priority-queue\page.tsx:92:29
+  90 |   useEffect(() => {
+  91 |     const step = steps[currentStepIndex];
+> 92 |     if (step?.values?.heap) setHeap(step.values.heap as PQNode[]);
+     |                             ^^^^^^^ Avoid calling setState() directly within an effect
+  93 |     setActiveIndices(step?.indices ?? []);
+  94 |   }, [currentStepIndex, steps]);
+  95 |  react-hooks/set-state-in-effect
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\data-structures\queue\page.tsx
+  20:8  error    Unexpected any. Specify a different type                                                                       @typescript-eslint/no-explicit-any
+  45:6  warning  React Hook useEffect has a missing dependency: 'operations'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\data-structures\stack\page.tsx
+   3:21  warning  'useState' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+  22:8   error    Unexpected any. Specify a different type                                                                       @typescript-eslint/no-explicit-any
+  47:6   warning  React Hook useEffect has a missing dependency: 'operations'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  80:47  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                react/no-unescaped-entities
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\graphs\dijkstra\page.tsx
+  81:83  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\graphs\kruskal\page.tsx
+  61:82   error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  63:111  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\graphs\prim\page.tsx
+  62:79  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\searching\binary\page.tsx
+  43:5  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\searching\binary\page.tsx:43:5
+  41 |
+  42 |   useEffect(() => {
+> 43 |     generateData();
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  44 |   }, [arraySize]);
+  45 |
+  46 |   useEffect(() => {  react-hooks/set-state-in-effect
+  44:6  warning  React Hook useEffect has a missing dependency: 'generateData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react-hooks/exhaustive-deps
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\searching\jump\page.tsx
+  43:5  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\searching\jump\page.tsx:43:5
+  41 |
+  42 |   useEffect(() => {
+> 43 |     generateData();
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  44 |   }, [arraySize]);
+  45 |
+  46 |   useEffect(() => {  react-hooks/set-state-in-effect
+  44:6  warning  React Hook useEffect has a missing dependency: 'generateData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\searching\linear\page.tsx
+  43:5  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\searching\linear\page.tsx:43:5
+  41 |
+  42 |   useEffect(() => {
+> 43 |     generateData();
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  44 |   }, [arraySize]);
+  45 |
+  46 |   useEffect(() => {  react-hooks/set-state-in-effect
+  44:6  warning  React Hook useEffect has a missing dependency: 'generateData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react-hooks/exhaustive-deps
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\sorting\bubble\page.tsx
+  12:10  warning  'Shuffle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  45:3   error    Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\sorting\bubble\page.tsx:45:3
+  43 |   // Use a stable ref for stepForward so the interval doesn't need it as a dependency
+  44 |   const stepForwardRef = useRef(stepForward);
+> 45 |   stepForwardRef.current = stepForward;
+     |   ^^^^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  46 |   const currentStepRef = useRef(currentStepIndex);
+  47 |   currentStepRef.current = currentStepIndex;
+  48 |   const stepsLengthRef = useRef(steps.length);  react-hooks/refs
+  47:3   error    Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\sorting\bubble\page.tsx:47:3
+  45 |   stepForwardRef.current = stepForward;
+  46 |   const currentStepRef = useRef(currentStepIndex);
+> 47 |   currentStepRef.current = currentStepIndex;
+     |   ^^^^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  48 |   const stepsLengthRef = useRef(steps.length);
+  49 |   stepsLengthRef.current = steps.length;
+  50 |                                                                                             react-hooks/refs
+  49:3   error    Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\sorting\bubble\page.tsx:49:3
+  47 |   currentStepRef.current = currentStepIndex;
+  48 |   const stepsLengthRef = useRef(steps.length);
+> 49 |   stepsLengthRef.current = steps.length;
+     |   ^^^^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  50 |
+  51 |   useEffect(() => {
+  52 |     if (!isPlaying) {                                                                                                                                              react-hooks/refs
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\sorting\counting\page.tsx
+  36:5  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\sorting\counting\page.tsx:36:5
+  34 |
+  35 |   useEffect(() => {
+> 36 |     generateData();
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  37 |   }, [arraySize]);
+  38 |
+  39 |   useEffect(() => {  react-hooks/set-state-in-effect
+  37:6  warning  React Hook useEffect has a missing dependency: 'generateData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react-hooks/exhaustive-deps
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\sorting\heap\page.tsx
+  36:5  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\sorting\heap\page.tsx:36:5
+  34 |
+  35 |   useEffect(() => {
+> 36 |     generateData();
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  37 |   }, [arraySize]);
+  38 |
+  39 |   useEffect(() => {  react-hooks/set-state-in-effect
+  37:6  warning  React Hook useEffect has a missing dependency: 'generateData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       react-hooks/exhaustive-deps
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\sorting\radix\page.tsx
+  36:5  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\sorting\radix\page.tsx:36:5
+  34 |
+  35 |   useEffect(() => {
+> 36 |     generateData();
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  37 |   }, [arraySize]);
+  38 |
+  39 |   useEffect(() => {  react-hooks/set-state-in-effect
+  37:6  warning  React Hook useEffect has a missing dependency: 'generateData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react-hooks/exhaustive-deps
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\sorting\selection\page.tsx
+  32:3  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\sorting\selection\page.tsx:32:3
+  30 |   // Stable refs so the interval never needs to restart on each step
+  31 |   const stepForwardRef = useRef(stepForward);
+> 32 |   stepForwardRef.current = stepForward;
+     |   ^^^^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  33 |   const currentStepRef = useRef(currentStepIndex);
+  34 |   currentStepRef.current = currentStepIndex;
+  35 |   const stepsLengthRef = useRef(steps.length);  react-hooks/refs
+  34:3  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\sorting\selection\page.tsx:34:3
+  32 |   stepForwardRef.current = stepForward;
+  33 |   const currentStepRef = useRef(currentStepIndex);
+> 34 |   currentStepRef.current = currentStepIndex;
+     |   ^^^^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  35 |   const stepsLengthRef = useRef(steps.length);
+  36 |   stepsLengthRef.current = steps.length;
+  37 |                                                                            react-hooks/refs
+  36:3  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\sorting\selection\page.tsx:36:3
+  34 |   currentStepRef.current = currentStepIndex;
+  35 |   const stepsLengthRef = useRef(steps.length);
+> 36 |   stepsLengthRef.current = steps.length;
+     |   ^^^^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  37 |
+  38 |   useEffect(() => {
+  39 |     setAlgorithmId("selection-sort");                                                                                                             react-hooks/refs
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\sorting\shell\page.tsx
+  36:5  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\sorting\shell\page.tsx:36:5
+  34 |
+  35 |   useEffect(() => {
+> 36 |     generateData();
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  37 |   }, [arraySize]);
+  38 |
+  39 |   useEffect(() => {  react-hooks/set-state-in-effect
+  37:6  warning  React Hook useEffect has a missing dependency: 'generateData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react-hooks/exhaustive-deps
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\trees\avl\page.tsx
+  89:6  warning  React Hook useEffect has missing dependencies: 'resetVisualizer', 'setAlgorithmId', and 'setSteps'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
+  94:7  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\trees\avl\page.tsx:94:7
+  92 |     const step = steps[currentStepIndex];
+  93 |     if (step?.values) {
+> 94 |       setTreeState(step.values as { root: string | null; nodes: NodeMap });
+     |       ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  95 |     }
+  96 |   }, [currentStepIndex, steps]);
+  97 |  react-hooks/set-state-in-effect
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\trees\bst\page.tsx
+  47:6  warning  React Hook useEffect has a missing dependency: 'operations'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\trees\fenwick-tree\page.tsx
+  33:6  warning  React Hook useEffect has missing dependencies: 'resetVisualizer', 'setAlgorithmId', and 'setSteps'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+  38:7  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\trees\fenwick-tree\page.tsx:38:7
+  36 |     const step = steps[currentStepIndex];
+  37 |     if (step?.values) {
+> 38 |       setBitState(step.values as { bit: number[]; arr: number[]; queryResult?: number; queryRange?: number[] });
+     |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  39 |     }
+  40 |     setActiveIdx(step?.indices ?? []);
+  41 |   }, [currentStepIndex, steps]);  react-hooks/set-state-in-effect
+  54:9  warning  'n' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\trees\segment-tree\page.tsx
+  94:6  warning  React Hook useEffect has missing dependencies: 'resetVisualizer', 'setAlgorithmId', and 'setSteps'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react-hooks/exhaustive-deps
+  99:7  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\trees\segment-tree\page.tsx:99:7
+   97 |     const step = steps[currentStepIndex];
+   98 |     if (step?.values) {
+>  99 |       setTreeState(step.values as { tree: SegTree; arr: number[]; queryRange?: number[]; queryResult?: number });
+      |       ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  100 |     }
+  101 |   }, [currentStepIndex, steps]);
+  102 |  react-hooks/set-state-in-effect
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\trees\trie\page.tsx
+   98:6   warning  React Hook useEffect has missing dependencies: 'resetVisualizer', 'setAlgorithmId', and 'setSteps'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       react-hooks/exhaustive-deps
+  103:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\app\(visualizer)\trees\trie\page.tsx:103:7
+  101 |     const step = steps[currentStepIndex];
+  102 |     if (step?.values) {
+> 103 |       setTrieState(step.values as { root: string; nodes: TrieMap });
+      |       ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  104 |     }
+  105 |   }, [currentStepIndex, steps]);
+  106 |  react-hooks/set-state-in-effect
+  140:23  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              react/no-unescaped-entities
+  140:33  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              react/no-unescaped-entities
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\components\d3\ArrayViz.tsx
+  22:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\components\d3\ArrayViz.tsx:22:7
+  20 |   useEffect(() => {
+  21 |     if (currentStepData?.type === 'sorted' && currentStepData.indices) {
+> 22 |       setSortedIndices(prev => {
+     |       ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  23 |         const next = new Set(prev);
+  24 |         currentStepData.indices!.forEach(i => next.add(i));
+  25 |         return next;  react-hooks/set-state-in-effect
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\components\d3\GraphViz.tsx
+   60:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  100:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  135:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\components\d3\GridViz.tsx
+   46:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   51:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   72:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  103:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  114:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  138:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\components\d3\LinkedListViz.tsx
+   83:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  169:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\components\d3\StackQueueViz.tsx
+   39:31  error    Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+   44:29  warning  'd' is defined but never used                          @typescript-eslint/no-unused-vars
+   44:32  warning  'i' is defined but never used                          @typescript-eslint/no-unused-vars
+   89:51  error    Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+   98:23  warning  'topMargin' is assigned a value but never used         @typescript-eslint/no-unused-vars
+  135:29  warning  'd' is defined but never used                          @typescript-eslint/no-unused-vars
+  135:32  warning  'i' is defined but never used                          @typescript-eslint/no-unused-vars
+  156:21  warning  'topInvertedIndex' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\components\d3\TreeViz.tsx
+   12:55  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   77:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   78:45  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   86:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   96:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  101:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  101:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  102:20  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  103:20  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  103:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  113:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  116:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  121:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  127:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  145:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  150:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\components\layout\Sidebar.tsx
+  125:124  error  Comments inside children section of tag should be placed inside braces  react/jsx-no-comment-textnodes
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\components\layout\TopBar.tsx
+  18:19  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\components\layout\TopBar.tsx:18:19
+  16 |   const { theme, setTheme } = useTheme();
+  17 |   const [mounted, setMounted] = useState(false);
+> 18 |   useEffect(() => setMounted(true), []);
+     |                   ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  19 |
+  20 |   return (
+  21 |     <header className="h-16 w-full bg-white dark:bg-[#0d0f1a] border-b border-black/10 dark:border-[#252840] flex items-center justify-between px-8 shrink-0 z-10 transition-all duration-300">  react-hooks/set-state-in-effect
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\components\visualizer\TheoryCard.tsx
+  2:62  warning  'Languages' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\components\visualizer\Workbench.tsx
+  4:31  warning  'Share2' is defined but never used  @typescript-eslint/no-unused-vars
+  4:39  warning  'Info' is defined but never used    @typescript-eslint/no-unused-vars
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\lib\algorithms\advanced\fibonacciDP.ts
+  6:9  warning  'maxN' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\lib\algorithms\trees\fenwickTree.ts
+  21:9  warning  'prefixSum' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  28:9  warning  'bitUpdate' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\lib\algorithms\trees\segmentTree.ts
+  18:42  warning  'parentId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\lib\store\visualizerStore.ts
+  12:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  20:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\rajan\Downloads\AlgoX\dsa-visualizer\src\lib\types\algorithm.ts
+  19:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  22:20  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  52:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+Γ£û 111 problems (76 errors, 35 warnings)
+

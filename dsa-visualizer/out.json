@@ -1,0 +1,90 @@
+[
+  {
+    "id": 0,
+    "type": "compare",
+    "indices": [
+      0,
+      1
+    ],
+    "values": {
+      "array": [
+        50,
+        20,
+        80,
+        10,
+        90,
+        30,
+        70,
+        40
+      ]
+    },
+    "description": "Comparing 50 and 20",
+    "codeLine": 4
+  },
+  {
+    "id": 1,
+    "type": "swap",
+    "indices": [
+      0,
+      1
+    ],
+    "values": {
+      "array": [
+        20,
+        50,
+        80,
+        10,
+        90,
+        30,
+        70,
+        40
+      ]
+    },
+    "description": "Swapped 50 and 20 since 50 > 20",
+    "codeLine": 6
+  },
+  {
+    "id": 2,
+    "type": "compare",
+    "indices": [
+      1,
+      2
+    ],
+    "values": {
+      "array": [
+        20,
+        50,
+        80,
+        10,
+        90,
+        30,
+        70,
+        40
+      ]
+    },
+    "description": "Comparing 50 and 80",
+    "codeLine": 4
+  },
+  {
+    "id": 3,
+    "type": "compare",
+    "indices": [
+      2,
+      3
+    ],
+    "values": {
+      "array": [
+        20,
+        50,
+        80,
+        10,
+        90,
+        30,
+        70,
+        40
+      ]
+    },
+    "description": "Comparing 80 and 10",
+    "codeLine": 4
+  }
+]

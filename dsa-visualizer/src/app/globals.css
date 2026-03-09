@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+@theme {
+  /* Design Tokens from algolern-new.html */
+  --color-ink: #0a0a0a;
+  --color-paper: #f5f4ef;
+  --color-lime: #cbff5e;
+  --color-lime-dark: #9fd42a;
+  --color-muted: #888880;
+  --color-card-bg: #ffffff;
+  --color-card-border: #e0dfd8;
+  --color-code-bg: #0f0f0f;
+
+  /* Fonts */
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'JetBrains Mono', monospace;
+
+  /* Legacy Compat (Light Theme Baseline) */
+  --color-bg-primary: var(--color-paper);
+  --color-bg-secondary: #eeeae0; 
+  --color-bg-card: var(--color-card-bg);
+  --color-bg-hover: #e0dfd8;
+  
+  --color-border: var(--color-card-border);
+  
+  --color-text-primary: var(--color-ink);
+  --color-text-secondary: var(--color-muted);
+  --color-text-muted: #aaaaaa;
+
+  --color-accent-primary: var(--color-lime);
+  
+  /* D3 Visualizer Colors (High Contrast) */
+  --color-viz-default: #d1d0c9;
+  --color-viz-active: var(--color-lime);
+  --color-viz-comparing: #3b82f6; /* Contrasting Blue */
+  --color-viz-swapping: #ef4444;   /* Contrasting Red */
+  --color-viz-sorted: #10b981;     /* Success Green */
+}
+
+@layer base {
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    @apply antialiased selection:bg-lime selection:text-ink;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: 0.02em;
+  }
+}
+
+/* CUSTOM CURSOR */
+#cursor {
+  position: fixed;
+  width: 18px; height: 18px;
+  background: var(--color-lime);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.12s ease, width 0.3s ease, height 0.3s ease, opacity 0.3s ease;
+}
+#cursor.hover {
+  width: 48px; height: 48px;
+  opacity: 0.6;
+  background: var(--color-lime-dark);
+}
+
+@layer utilities {
+  .text-stroke {
+    -webkit-text-stroke: 2px var(--color-ink);
+    color: transparent;
+  }
+  
+  .logo-accent {
+    @apply bg-ink text-lime px-[6px] pt-0 pb-[3px] mr-[1px] leading-none inline-block;
+  }
+  
+  .reveal {
+    @apply opacity-0 translate-y-8 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)];
+  }
+  
+  .reveal.in {
+    @apply opacity-100 translate-y-0;
+  }
+
+  .ticker-track {
+    @apply inline-flex gap-12 whitespace-nowrap animate-[ticker_30s_linear_infinite];
+  }
+
+  /* Hide Scrollbar Cross-Browser */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none;    /* Firefox */
+  }
+}
+
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
