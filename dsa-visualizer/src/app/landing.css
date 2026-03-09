@@ -107,13 +107,18 @@
 .landing-nav-links a:hover::after { width: 100%; }
 
 .landing-btn-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  gap: 8px;
   background: var(--lime);
   color: var(--ink);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 10px 24px;
+  padding: 12px 28px;
   border-radius: 4px;
   transition: background var(--t) ease, transform 0.2s ease;
 }
@@ -693,4 +698,9 @@
   
   .footer-inner { flex-direction: column; align-items: flex-start; gap: 16px; }
   .footer-links { flex-wrap: wrap; gap: 16px; }
+
+  /* Nav Adjustments */
+  .landing-nav-inner { padding: 0 16px; height: 54px; }
+  .landing-logo { font-size: 1.3rem; letter-spacing: 1px; }
+  .landing-btn-cta { padding: 8px 16px; font-size: 0.65rem; }
 }

@@ -138,7 +138,9 @@ export default function LandingPage() {
             <li><Link href="#">Pricing</Link></li>
           </ul>
 
-          <Link href="/sorting/bubble" className="landing-btn-cta">Start Learning →</Link>
+          <Link href="/sorting/bubble" className="landing-btn-cta">
+            Start Learning <span>→</span>
+          </Link>
         </div>
       </nav>
 
