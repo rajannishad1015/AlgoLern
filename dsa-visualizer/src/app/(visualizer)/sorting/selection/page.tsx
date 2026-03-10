@@ -125,12 +125,27 @@ export default function SelectionSortPage() {
         info={
           <TheoryCard
             title="Selection Sort"
-            description="Selection Sort works by dividing the array into two parts: a sorted part on the left and an unsorted part on the right. In each pass, it finds the MINIMUM element from the unsorted part and swaps it to the beginning of the unsorted section. The sorted part grows one element at a time."
-            descriptionHi="Selection Sort array ko do hisson mein divide karta hai: left mein sorted, right mein unsorted. Har pass mein, unsorted part mein se MINIMUM element dhundhta hai aur use unsorted part ke start mein swap kar deta hai. Yahi kaam tab tak karta hai jab tak poora array sort naa ho jaaye."
+            description="Selection Sort is a simple comparison-based algorithm. It works by repeatedly finding the MINIMUM element from the unsorted part and moving it to the beginning of that part. Imagine it as 'selecting' the smallest item and placing it in its correct spot one by one."
+            descriptionHi="Selection Sort ek simple algorithm hai jo har baar unsorted hisse mein se SABSE CHHOTA (minimum) number dhundhta hai aur usse shuru mein le aata hai. Isme hum har pass mein ek 'selection' karte hain, isiliye iska naam Selection Sort hai."
+            analogy={{
+              icon: "🃏",
+              title: "Selecting Cards",
+              titleHi: "Cards Selection",
+              desc: "Imagine you have a hand of unsorted playing cards. You look through all of them, find the smallest card, and move it to the very left. Then you look at the remaining cards, find the next smallest, and move it next to the first one. You repeat this until all cards are in order.",
+              descHi: "Maan lo aapke paas cards ka ek dher hai. Aap sabse chhota card dhundhte ho aur usse sabse pehle (left mein) rakh dete ho. Phir bache huye cards mein se agla sabse chhota dhundhte ho aur pehle wale ke baad rakhte ho. Aise hi poora deck sort hota hai."
+            }}
+            readingTip={{
+              en: "The outer loop runs n times (one pass per element). In each pass, it selects the minimum element from the unsorted sub-list and swaps it with the leftmost unsorted element.",
+              hi: "Outer loop n baar chalta hai. Har pass mein, unsorted list mein se minimum number ko select kiya jaata hai aur usse unsorted part ke pehle element se swap kar diya jaata hai."
+            }}
+            quote={{
+              en: "\"Selection Sort is like picking the smallest pebble from a pile and starting a new, organized pile. It's simple, predictable, and does the least amount of movement (swaps).\"",
+              hi: "\"Selection Sort jaise ek dher mein se sabse chhota pathar chun-na aur naya dher banana. Yeh simple hai, aur isme swapping (movement) sabse kam hoti hai.\""
+            }}
             complexities={[
-              { case: "Best",    time: "n²", space: "1", note: "No early exit possible — always scans full unsorted part." },
-              { case: "Average", time: "n²", space: "1", note: "n passes, each scanning fewer elements." },
-              { case: "Worst",   time: "n²", space: "1", note: "Reverse sorted. Same as average — no advantage." },
+              { case: "Best Case",    time: "O(n²)", space: "O(1)", note: "Even if sorted, it still scans everything to find the min." },
+              { case: "Average Case", time: "O(n²)", space: "O(1)", note: "Standard nested loop behavior." },
+              { case: "Worst Case",   time: "O(n²)", space: "O(1)", note: "Reverse sorted or random - same performance." },
             ]}
             pseudocode={`procedure selectionSort(arr):
   n = length(arr)
@@ -141,37 +156,52 @@ export default function SelectionSortPage() {
         minIdx = j        ← found a smaller element!
     if minIdx != i:
       swap(arr[i], arr[minIdx])  ← place min at position i
-    ← arr[i] is now sorted 🔒
+    ← index i is now sorted 🔒
   return arr`}
             useCases={[
-              "Makes minimum number of swaps — O(n) swaps total.",
-              "In-place: uses only O(1) extra memory.",
-              "Not stable: equal elements may change order.",
-              "Not adaptive: always runs O(n²) even if sorted.",
-              "Good when write/swap operations are expensive.",
-              "Simple and predictable — great for learning.",
+              "Ideal when memory is limited (In-place algorithm).",
+              "Performs the minimum number of swaps - O(n) total.",
+              "Simple to implement and understand for beginners.",
+              "Useful when writing to memory is much more expensive than reading.",
+              "Predictable performance: always O(n²) regardless of data.",
             ]}
             useCasesHi={[
-              "Minimum swaps karta hai — total sirf O(n) swaps.",
-              "In-place: sirf O(1) extra memory use hoti hai.",
-              "Stable nahi: barabar elements ka order change ho sakta hai.",
-              "Adaptive nahi: sorted array pe bhi O(n²) hi lagta hai.",
-              "Jab swap/write operations expensive hon tab achha hai.",
-              "Simple aur predictable — seekhne ke liye best.",
+              "Yahan memory ki kami ho wahan use kar sakte hain (In-place).",
+              "Isme swaps sabse kam hote hain - total sirf O(n).",
+              "Shuruat karne walo ke liye samajhne mein sabse asaan.",
+              "Jab memory mein 'write' karna expensive ho tab best hai.",
+              "Predictable hai: data kaisa bhi ho, time O(n²) hi lagega.",
             ]}
+            howItWorks={{
+              en: [
+                { icon: "1️⃣", text: "Start from the beginning. Scan the entire array to find the smallest number." },
+                { icon: "2️⃣", text: "Swap that smallest number with the first element. It's now in its correct position! 🔒" },
+                { icon: "3️⃣", text: "Move one position ahead. Scan the remaining elements for the new minimum." },
+                { icon: "4️⃣", text: "Swap the new minimum with the first unsorted element. Lock it in! 🔒" },
+                { icon: "5️⃣", text: "Repeat: each pass selects the minimum from the unsorted part and places it correctly." },
+                { icon: "✅", text: "After n-1 passes, every element is in its final sorted position!" },
+              ],
+              hi: [
+                { icon: "1️⃣", text: "Shuru se pura array dekho aur sabse chhota number dhundho." },
+                { icon: "2️⃣", text: "Woh chhota number jo mila use pehle wale element se swap karo. Woh ab sahi jagah hai! 🔒" },
+                { icon: "3️⃣", text: "Ek step aage bado. Baki unsorted numbers mein se phir minimum dhundho." },
+                { icon: "4️⃣", text: "Naya minimum mila? Usse pehle unsorted jagah par swap karo. Aur ek number set ho gaya! 🔒" },
+                { icon: "5️⃣", text: "Yahi karte raho: har baar ek naya minimum chunte hain aur uski sahi jagah rakh dete hain." },
+                { icon: "✅", text: "n-1 passes ke baad, poora array sort ho jaata hai!" },
+              ]
+            }}
             example={{
               array: [64, 25, 12, 22, 11],
               steps: [
-                { desc: "Starting array. Find the minimum and place it at position 0.", descHi: "Shuru ka array. Minimum dhundho aur position 0 pe rakho.", array: [64, 25, 12, 22, 11], highlight: [] },
-                { desc: "Pass 1: Scan all elements. Found minimum = 11 at index 4.", descHi: "Pass 1: Sab elements scan kiye. Minimum = 11, index 4 pe.", array: [64, 25, 12, 22, 11], highlight: [4] },
-                { desc: "Pass 1: SWAP 11 (index 4) with 64 (index 0). 11 now in position 0. 🔒", descHi: "Pass 1: 11 (index 4) aur 64 (index 0) ko SWAP karo. 11 position 0 pe! 🔒", array: [11, 25, 12, 22, 64], highlight: [0, 4] },
-                { desc: "Pass 1 done! 11 is sorted. 🔒 Now find minimum from index 1 onwards.", descHi: "Pass 1 khatam! 11 sort ho gaya. 🔒 Ab index 1 se minimum dhundho.", array: [11, 25, 12, 22, 64], highlight: [0] },
-                { desc: "Pass 2: Scan [25, 12, 22, 64]. Found minimum = 12 at index 2.", descHi: "Pass 2: [25, 12, 22, 64] scan kiya. Minimum = 12, index 2 pe.", array: [11, 25, 12, 22, 64], highlight: [2] },
-                { desc: "Pass 2: SWAP 12 (index 2) with 25 (index 1). 12 now in position 1. 🔒", descHi: "Pass 2: 12 aur 25 ko SWAP karo. 12 position 1 pe! 🔒", array: [11, 12, 25, 22, 64], highlight: [1, 2] },
-                { desc: "Pass 3: Scan [25, 22, 64]. Found minimum = 22 at index 3.", descHi: "Pass 3: [25, 22, 64] scan kiya. Minimum = 22 at index 3.", array: [11, 12, 25, 22, 64], highlight: [3] },
-                { desc: "Pass 3: SWAP 22 (index 3) with 25 (index 2). 🔒", descHi: "Pass 3: 22 aur 25 ko SWAP karo. 🔒", array: [11, 12, 22, 25, 64], highlight: [2, 3] },
-                { desc: "Pass 4: Scan [25, 64]. 25 is already minimum at index 3. No swap needed. ✓", descHi: "Pass 4: [25, 64] scan kiya. 25 pehle se hi minimum hai. Swap nahi. ✓", array: [11, 12, 22, 25, 64], highlight: [3] },
-                { desc: "Array is fully sorted! ✨ Total swaps: only 3!", descHi: "Array poora sort ho gaya! ✨ Total sirf 3 swaps lage!", array: [11, 12, 22, 25, 64], highlight: [0, 1, 2, 3, 4] },
+                { desc: "Initial state. We need to find the minimum in the whole array.", descHi: "Shuruat. Humein poore array mein se sabse chhota number dhundhna hai.", array: [64, 25, 12, 22, 11], highlight: [] },
+                { desc: "Pass 1: Found 11 is the minimum. Swap 11 with 64 (start of unsorted part).", descHi: "Pass 1: Pata chala 11 sabse chhota hai. 11 ko 64 se swap karo.", array: [11, 25, 12, 22, 64], highlight: [0, 4] },
+                { desc: "11 is now sorted! 🔒 Now look for the minimum in [25, 12, 22, 64].", descHi: "11 sort ho gaya! 🔒 Ab bache huye [25, 12, 22, 64] mein se minimum dhundho.", array: [11, 25, 12, 22, 64], highlight: [0] },
+                { desc: "Pass 2: Found 12 is minimum. Swap 12 with 25.", descHi: "Pass 2: 12 minimum mila. 12 ko 25 se swap karo.", array: [11, 12, 25, 22, 64], highlight: [1, 2] },
+                { desc: "12 is sorted! 🔒 Look for minimum in [25, 22, 64].", descHi: "12 sort ho gaya! 🔒 Ab [25, 22, 64] mein se minimum dhundho.", array: [11, 12, 25, 22, 64], highlight: [1] },
+                { desc: "Pass 3: Found 22 is minimum. Swap 22 with 25.", descHi: "Pass 3: 22 minimum mila. 22 aur 25 ko swap karo.", array: [11, 12, 22, 25, 64], highlight: [2, 3] },
+                { desc: "22 is sorted! 🔒 Only [25, 64] left. 25 is smallest here.", descHi: "22 sort ho gaya! 🔒 Ab sirf [25, 64] bacha hai. Yahan 25 chhota hai.", array: [11, 12, 22, 25, 64], highlight: [2] },
+                { desc: "25 is sorted! 🔒 64 is the last remaining element, so it must be in place.", descHi: "25 sort ho gaya! 🔒 64 aakhiri bacha hai, iska matlab woh sahi jagah pe hai.", array: [11, 12, 22, 25, 64], highlight: [3] },
+                { desc: "Selection Complete! Array is fully sorted. ✨", descHi: "Selection khatam! Array poora sort ho gaya hai. ✨", array: [11, 12, 22, 25, 64], highlight: [0, 1, 2, 3, 4] },
               ],
             }}
             code={{
@@ -179,46 +209,45 @@ export default function SelectionSortPage() {
               content: `function selectionSort(arr) {
   const n = arr.length;
   for (let i = 0; i < n - 1; i++) {
-    // Find the minimum element in remaining unsorted array
-    let minIdx = i;
+    let minIdx = i; // Assume current index is minimum
     for (let j = i + 1; j < n; j++) {
       if (arr[j] < arr[minIdx]) {
-        minIdx = j; // Found a smaller element
+        minIdx = j; // Update minIdx if smaller element found
       }
     }
-    // Swap the found minimum with the first unsorted element
+    // Swap the found minimum with the first unsorted position
     if (minIdx !== i) {
       [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
     }
-    // arr[0..i] is now sorted
   }
   return arr;
-}
-
-// Example:
-const nums = [64, 25, 12, 22, 11];
-console.log(selectionSort(nums)); // [11, 12, 22, 25, 64]`,
+}`,
             }}
             quiz={[
               {
-                q: "What is the maximum number of swaps Selection Sort performs for n elements?",
-                options: ["O(n²)", "O(n log n)", "O(n)", "O(1)"],
+                q: "What is the time complexity of Selection Sort in the best case?",
+                options: ["O(n)", "O(n log n)", "O(n²)", "O(1)"],
                 answer: 2,
               },
               {
-                q: "After the kth pass of Selection Sort, how many elements are guaranteed to be in their correct final position?",
-                options: ["k/2", "k", "k²", "2k"],
+                q: "Why is it called 'Selection' Sort?",
+                options: [
+                  "Because it selects random elements",
+                  "Because it repeatedly selects the minimum element",
+                  "Because it selects the middle element",
+                  "Because it's a very selective algorithm",
+                ],
                 answer: 1,
               },
               {
-                q: "How is Selection Sort different from Bubble Sort?",
+                q: "Which property is true for Selection Sort?",
                 options: [
-                  "Selection Sort is always faster",
-                  "Selection Sort finds and places the minimum, Bubble Sort swaps adjacent pairs",
-                  "Selection Sort is stable, Bubble Sort is not",
-                  "Selection Sort uses O(log n) memory",
+                  "It is a stable sorting algorithm",
+                  "It is an adaptive algorithm",
+                  "It makes minimum number of swaps [O(n)]",
+                  "It is best for large datasets",
                 ],
-                answer: 1,
+                answer: 2,
               },
             ]}
           />

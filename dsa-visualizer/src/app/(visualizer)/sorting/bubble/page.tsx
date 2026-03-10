@@ -139,6 +139,21 @@ export default function BubbleSortPage() {
             title="Bubble Sort"
             description="Bubble Sort works by repeatedly stepping through the list, comparing adjacent elements, and swapping them if they are in the wrong order. The pass through the list is repeated until the list is sorted. It gets its name because smaller elements 'bubble' to the top of the list with each pass."
             descriptionHi="Bubble Sort ek simple sorting algorithm hai jo baar baar list ko scan karta hai, adjacent elements compare karta hai, aur agar galat order mein hain toh unhe swap kar deta hai. Yeh tab tak karta rehta hai jab tak list sort naa ho jaaye. Iska naam is liye hai kyunki chhote elements 'bubble' karke list ke upar aa jaate hain har pass mein."
+            analogy={{
+              icon: "🫧",
+              title: "Bubbles in Water",
+              titleHi: "Paani ke andar bubbles",
+              desc: "Imagine numbers as bubbles under water. Heavy numbers (bigger values) keep sinking to the bottom (end of the array), while lighter bubbles (smaller values) float to the top. This keeps happening until all bubbles are in the right order.",
+              descHi: "Socho numbers paani ke andar bubbles hain. Bhaari numbers (bade values) neeche jaate rehte hain (array ke end mein), aur halke bubbles (chhote values) upar aate hain. Yeh tab tak hota hai jab tak sab bubbles sahi jagah naa aa jaayein."
+            }}
+            readingTip={{
+              en: "The outer loop runs n times (one pass per element). The inner loop compares adjacent pairs. Each pass places one more element in its correct final position.",
+              hi: "Outer loop n baar chalta hai (ek pass har element ke liye). Inner loop adjacent pairs compare karta hai. Har pass mein ek aur element apni final sahi jagah pe aa jaata hai."
+            }}
+            quote={{
+              en: "\"Bubble Sort is not used in production because it's slow (O(n²)), but it's the best algorithm to understand the concept of sorting. Every programmer learns it first!\"",
+              hi: "\"Bubble Sort real projects mein use nahi hota kyunki yeh slow hai (O(n²)), lekin yeh sabse best algorithm hai sorting samajhne ke liye. Har programmer isko pehle seekhta hai!\""
+            }}
             complexities={[
               { case: "Best",    time: "n",  space: "1", note: "Array already sorted. Only 1 pass needed (with flag optimization)." },
               { case: "Average", time: "n\u00b2", space: "1", note: "Random data. n passes, n comparisons each." },
@@ -161,6 +176,24 @@ export default function BubbleSortPage() {
               "Nearly-sorted arrays ke liye swap flag optimization ke saath achha kaam karta hai.",
               "Bade datasets (n > 1000) ke liye suitable nahi. QuickSort use karo.",
             ]}
+            howItWorks={{
+              en: [
+                { icon: "1️⃣", text: "Start from the first element. Compare it with the next element." },
+                { icon: "2️⃣", text: "If the left element is BIGGER than the right one — swap them! The big one bubbles right." },
+                { icon: "3️⃣", text: "Move to the next pair and repeat. Do this for every pair in the array." },
+                { icon: "4️⃣", text: "After one full pass, the LARGEST number is at the last position. It's locked in! 🔒" },
+                { icon: "5️⃣", text: "Do the same again for the remaining unsorted elements (skip the already sorted ones at the end)." },
+                { icon: "✅", text: "When a full pass happens with zero swaps, the array is sorted!" },
+              ],
+              hi: [
+                { icon: "1️⃣", text: "Shuru se ek pair dekho. Pehle number ko uske agle number se compare karo." },
+                { icon: "2️⃣", text: "Agar left wala BADA hai — dono ko swap karo! Bada wala aage badhta jaata hai." },
+                { icon: "3️⃣", text: "Agla pair dekho. Yahi kaam har pair ke saath karo." },
+                { icon: "4️⃣", text: "Ek full round ke baad, SABSE BADA number end mein aa jaata hai. Woh set ho jaata hai! 🔒" },
+                { icon: "5️⃣", text: "Agle round mein baki unsorted numbers ke liye yahi karo (end waale already set hain unhe chodo)." },
+                { icon: "✅", text: "Jab poora round bina swap ke nikle, array sort ho gaya!" },
+              ]
+            }}
             example={{
               array: [5, 3, 8, 1, 4],
               steps: [

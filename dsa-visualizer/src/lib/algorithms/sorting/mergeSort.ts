@@ -54,14 +54,29 @@ export function generateMergeSortSteps(arr: number[]): AlgorithmStep[] {
       right++;
     }
 
+    // Visually empty the active subarray to prevent showing duplicate numbers during write-back
+    const visArray = [...a];
+    for (let i = low; i <= high; i++) {
+      visArray[i] = 0;
+    }
+    steps.push({
+      id: steps.length,
+      type: 'highlight',
+      indices: Array.from({ length: high - low + 1 }, (_, i) => low + i),
+      values: { array: [...visArray] },
+      description: `Preparing to merge! Vacated indices ${low} to ${high}.`,
+    });
+
+    // Write sorted elements back one by one
     for (let i = low; i <= high; i++) {
       a[i] = temp[i - low];
+      visArray[i] = temp[i - low];
       steps.push({
         id: steps.length,
         type: 'update',
         indices: [i],
-        values: { array: [...a] },
-        description: `Updating index ${i} with merged value ${a[i]}`,
+        values: { array: [...visArray] },
+        description: `Placed merged value ${a[i]} into index ${i}`,
       });
     }
 

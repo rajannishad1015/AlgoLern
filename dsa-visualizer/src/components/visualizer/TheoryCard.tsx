@@ -18,14 +18,33 @@ interface ExampleStep {
 interface TheoryCardProps {
   title: string;
   description: string;
-  descriptionHi?: string;         // Hinglish version
+  descriptionHi?: string;
   complexities: ComplexityRow[];
   pseudocode: string;
   useCases: string[];
-  useCasesHi?: string[];          // Hinglish version
+  useCasesHi?: string[];
+  analogy?: {
+    icon: string;
+    title: string;
+    titleHi: string;
+    desc: string;
+    descHi: string;
+  };
+  readingTip?: {
+    en: string;
+    hi: string;
+  };
+  quote?: {
+    en: string;
+    hi: string;
+  };
   example?: {
     array: number[];
     steps: ExampleStep[];
+  };
+  howItWorks?: {
+    en: { icon: string; text: string }[];
+    hi: { icon: string; text: string }[];
   };
   code?: { language: string; content: string };
   quiz?: { q: string; options: string[]; answer: number }[];
@@ -51,13 +70,18 @@ function ArrayDisplay({ arr, highlight }: { arr: number[]; highlight: number[] }
 }
 
 export function TheoryCard({
+  title,
   description,
   descriptionHi,
   complexities,
   pseudocode,
   useCases,
   useCasesHi,
+  analogy,
+  readingTip,
+  quote,
   example,
+  howItWorks,
   code,
   quiz,
 }: TheoryCardProps) {
@@ -156,39 +180,38 @@ export function TheoryCard({
         {activeTab === "theory" && (
           <div className="flex flex-col gap-7 md:gap-9 animate-in fade-in duration-500">
 
-            {/* Description */}
             <div className="flex flex-col gap-2.5">
               <h3 className="text-lg md:text-2xl font-bold text-black dark:text-white tracking-tight leading-snug font-display">
-                {isHi ? "Bubble Sort kya hai?" : "What is Bubble Sort?"}
+                {isHi ? `${title} kya hai?` : `What is ${title}?`}
               </h3>
               <p className="text-black/70 dark:text-slate-300 leading-relaxed text-sm md:text-base">{desc}</p>
             </div>
 
             {/* Analogy Card - Enhanced */}
-            <div className="relative group overflow-hidden bg-gradient-to-br from-indigo-50/50 to-white dark:from-indigo-500/10 dark:to-[#0d0f1a] border border-indigo-200/50 dark:border-indigo-500/20 rounded-3xl p-5 md:p-7 flex flex-col sm:flex-row gap-4 sm:gap-6 shadow-sm hover:shadow-md transition-all">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full -mr-16 -mt-16 blur-3xl" />
-              <div className="flex items-center gap-4 sm:flex-col sm:items-center sm:text-center w-full sm:w-24 shrink-0 relative z-10">
-                <div className="w-14 h-14 rounded-2xl bg-white dark:bg-[#1a1d2e] shadow-sm flex items-center justify-center text-3xl shrink-0 border border-black/5 dark:border-white/5">
-                  🫧
+            {analogy && (
+              <div className="relative group overflow-hidden bg-gradient-to-br from-indigo-50/50 to-white dark:from-indigo-500/10 dark:to-[#0d0f1a] border border-indigo-200/50 dark:border-indigo-500/20 rounded-3xl p-5 md:p-7 flex flex-col sm:flex-row gap-4 sm:gap-6 shadow-sm hover:shadow-md transition-all">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full -mr-16 -mt-16 blur-3xl" />
+                <div className="flex items-center gap-4 sm:flex-col sm:items-center sm:text-center w-full sm:w-24 shrink-0 relative z-10">
+                  <div className="w-14 h-14 rounded-2xl bg-white dark:bg-[#1a1d2e] shadow-sm flex items-center justify-center text-3xl shrink-0 border border-black/5 dark:border-white/5">
+                    {analogy.icon}
+                  </div>
+                  <p className="font-bold text-black dark:text-white text-sm sm:text-xs uppercase tracking-widest sm:hidden">
+                    The Analogy
+                  </p>
                 </div>
-                <p className="font-bold text-black dark:text-white text-sm sm:text-xs uppercase tracking-widest sm:hidden">
-                  The Analogy
-                </p>
+                <div className="relative z-10">
+                  <p className="font-bold text-black dark:text-white text-sm mb-2 hidden sm:block uppercase tracking-widest opacity-40">
+                    The Analogy
+                  </p>
+                  <h4 className="font-bold text-black dark:text-white mb-2 hidden sm:block font-display text-lg">
+                    {isHi ? analogy.titleHi : analogy.title}
+                  </h4>
+                  <p className="text-[13px] md:text-sm text-black/65 dark:text-slate-400 leading-relaxed md:leading-loose">
+                    {isHi ? analogy.descHi : analogy.desc}
+                  </p>
+                </div>
               </div>
-              <div className="relative z-10">
-                <p className="font-bold text-black dark:text-white text-sm mb-2 hidden sm:block uppercase tracking-widest opacity-40">
-                  The Analogy
-                </p>
-                <h4 className="font-bold text-black dark:text-white mb-2 hidden sm:block font-display text-lg">
-                   {isHi ? "Paani ke andar bubbles" : "Bubbles in Water"}
-                </h4>
-                <p className="text-[13px] md:text-sm text-black/65 dark:text-slate-400 leading-relaxed md:leading-loose">
-                  {isHi
-                    ? "Socho numbers paani ke andar bubbles hain. Bhaari numbers (bade values) neeche jaate rehte hain (array ke end mein), aur halke bubbles (chhote values) upar aate hain. Yeh tab tak hota hai jab tak sab bubbles sahi jagah naa aa jaayein."
-                    : "Imagine numbers as bubbles under water. Heavy numbers (bigger values) keep sinking to the bottom (end of the array), while lighter bubbles (smaller values) float to the top. This keeps happening until all bubbles are in the right order."}
-                </p>
-              </div>
-            </div>
+            )}
 
             {/* Step by Step - Cleaned up */}
             <div className="flex flex-col gap-4">
@@ -196,21 +219,24 @@ export function TheoryCard({
                 {isHi ? "Kaise Kaam Karta Hai" : "How it Works"}
               </h3>
               <div className="flex flex-col gap-3">
-                {(isHi ? [
-                  { icon: "1️⃣", text: "Pehle element se shuru karo. Usse uske agle element se compare karo." },
-                  { icon: "2️⃣", text: "Agar pehla BADA hai aur doosra CHHOTA — swap karo. Ab bada wala daayein chala gaya!" },
-                  { icon: "3️⃣", text: "Agla pair dekho. Har pair ke liye compare + swap karo." },
-                  { icon: "4️⃣", text: "Ek poori pass ke baad, SABSE BADA number last position pe aa jaata hai. Lock! 🔒" },
-                  { icon: "5️⃣", text: "Baaki elements ke liye phir se yahi karo (har baar last sorted wale ko ignore karo)." },
-                  { icon: "✅", text: "Aise karte raho jab tak ek bhi swap na ho. Array sorted ho gaya!" },
-                ] : [
-                  { icon: "1️⃣", text: "Start from the first element. Compare it with the next one." },
-                  { icon: "2️⃣", text: "If the first one is BIG and the second one is SMALL — swap them. Now the big one moved right!" },
-                  { icon: "3️⃣", text: "Move to the next pair. Repeat the compare + swap for all pairs." },
-                  { icon: "4️⃣", text: "After one full pass, the LARGEST number is now at the last position. It's sorted! 🔒" },
-                  { icon: "5️⃣", text: "Do the same again for remaining elements (ignore the last sorted ones each time)." },
-                  { icon: "✅", text: "Keep repeating until no swaps happen in a full pass. The array is sorted!" },
-                ]).map((step, i) => (
+                {(isHi
+                  ? (howItWorks?.hi ?? [
+                    { icon: "1️⃣", text: "Pehle element se shuru karo. Usse uske agle element se compare karo." },
+                    { icon: "2️⃣", text: "Agar pehla BADA hai aur doosra CHHOTA — swap karo. Ab bada wala daayein chala gaya!" },
+                    { icon: "3️⃣", text: "Agla pair dekho. Har pair ke liye compare + swap karo." },
+                    { icon: "4️⃣", text: "Ek poori pass ke baad, SABSE BADA number last position pe aa jaata hai. Lock! 🔒" },
+                    { icon: "5️⃣", text: "Baaki elements ke liye phir se yahi karo (har baar last sorted wale ko ignore karo)." },
+                    { icon: "✅", text: "Aise karte raho jab tak ek bhi swap na ho. Array sorted ho gaya!" },
+                  ])
+                  : (howItWorks?.en ?? [
+                    { icon: "1️⃣", text: "Start from the first element. Compare it with the next one." },
+                    { icon: "2️⃣", text: "If the first one is BIG and the second one is SMALL — swap them. Now the big one moved right!" },
+                    { icon: "3️⃣", text: "Move to the next pair. Repeat the compare + swap for all pairs." },
+                    { icon: "4️⃣", text: "After one full pass, the LARGEST number is now at the last position. It's sorted! 🔒" },
+                    { icon: "5️⃣", text: "Do the same again for remaining elements (ignore the last sorted ones each time)." },
+                    { icon: "✅", text: "Keep repeating until no swaps happen in a full pass. The array is sorted!" },
+                  ])
+                ).map((step, i) => (
                   <div key={i} className="flex gap-4 items-start bg-black/[0.01] dark:bg-[#1a1d2e]/40 border border-black/[0.03] dark:border-white/5 rounded-2xl px-5 py-4 transition-colors hover:bg-black/[0.02] dark:hover:bg-[#1a1d2e]">
                     <span className="text-xl shrink-0 leading-none">{step.icon}</span>
                     <span className="text-sm leading-relaxed text-black/70 dark:text-slate-300 font-medium">{step.text}</span>
@@ -233,14 +259,14 @@ export function TheoryCard({
             </div>
 
             {/* Quote */}
-            <div className="bg-black/[0.03] dark:bg-[#1a1d2e] border border-black/5 dark:border-[#2f3352] rounded-2xl p-5 md:p-6 relative overflow-hidden group">
-              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#cbff5e] rounded-l-2xl group-hover:w-2 transition-all" />
-              <p className="text-[13px] md:text-sm italic text-black/60 dark:text-slate-400 leading-relaxed font-medium pl-3">
-                {isHi
-                  ? "\"Bubble Sort real projects mein use nahi hota kyunki yeh slow hai (O(n²)), lekin yeh sabse best algorithm hai sorting samajhne ke liye. Har programmer isko pehle seekhta hai!\""
-                  : "\"Bubble Sort is not used in production because it's slow (O(n²)), but it's the best algorithm to understand the concept of sorting. Every programmer learns it first!\""}
-              </p>
-            </div>
+            {quote && (
+              <div className="bg-black/[0.03] dark:bg-[#1a1d2e] border border-black/5 dark:border-[#2f3352] rounded-2xl p-5 md:p-6 relative overflow-hidden group">
+                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#cbff5e] rounded-l-2xl group-hover:w-2 transition-all" />
+                <p className="text-[13px] md:text-sm italic text-black/60 dark:text-slate-400 leading-relaxed font-medium pl-3">
+                  {isHi ? quote.hi : quote.en}
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -280,8 +306,8 @@ export function TheoryCard({
               </div>
               <p className="text-sm text-black/70 dark:text-slate-300 leading-relaxed font-medium self-center">
                 {isHi
-                  ? <><strong>Ho gaya!</strong> Array poora sorted hai. Dekho kaise sabse bada number pehle daayein bubble kiya, phir doosra sabse bada — yahi hai Bubble Sort!</>
-                  : <><strong>Done!</strong> The array is fully sorted. Notice how the largest number &ldquo;bubbled&rdquo; to the right first, then the second largest. That&apos;s Bubble Sort in action!</>}
+                  ? <><strong>Ho gaya!</strong> Array poora sorted hai. {title} complete! ✨</>
+                  : <><strong>Done!</strong> The array is fully sorted. {title} complete! ✨</>}
               </p>
             </div>
           </div>
@@ -305,11 +331,13 @@ export function TheoryCard({
                 ))}
               </code>
             </pre>
-            <div className="bg-black/[0.03] dark:bg-[#1a1d2e] border border-black/5 dark:border-[#2f3352] rounded-xl p-5 text-sm text-black/60 dark:text-slate-400 leading-relaxed">
-              {isHi
-                ? <><strong className="text-black dark:text-white">Padhne ka tarika:</strong> Outer loop <em>n</em> baar chalta hai (ek pass har element ke liye). Inner loop adjacent pairs compare karta hai. Har pass mein ek aur element apni final sahi jagah pe aa jaata hai.</>
-                : <><strong className="text-black dark:text-white">Reading tip:</strong> The outer loop runs <em>n</em> times (one pass per element). The inner loop compares adjacent pairs. Each pass places one more element in its correct final position.</>}
-            </div>
+            {readingTip && (
+              <div className="bg-black/[0.03] dark:bg-[#1a1d2e] border border-black/5 dark:border-[#2f3352] rounded-xl p-5 text-sm text-black/60 dark:text-slate-400 leading-relaxed">
+                {isHi
+                  ? <><strong className="text-black dark:text-white">Padhne ka tarika:</strong> {readingTip.hi}</>
+                  : <><strong className="text-black dark:text-white">Reading tip:</strong> {readingTip.en}</>}
+              </div>
+            )}
           </div>
         )}
 

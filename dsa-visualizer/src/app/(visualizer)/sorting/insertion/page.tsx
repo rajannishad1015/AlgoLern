@@ -73,11 +73,11 @@ export default function InsertionSortPage() {
     ? currentStepData.description
         .replace(/\b(\d+)\b/g, '<span class="text-[var(--lime-dark)] dark:text-lime font-bold">$1</span>')
         + `<span class="text-indigo-400 italic ml-2">(Next: ${
+            currentStepData.type === 'compare'   ? 'Shift Right?' :
             currentStepData.type === 'highlight' ? 'Compare' :
-            currentStepData.type === 'compare'   ? 'Shift' :
-            currentStepData.type === 'update'    ? 'Insert' :
             currentStepData.type === 'swap'      ? 'Lock' :
-            currentStepData.type === 'sorted'    ? 'Done' : 'Run'
+            currentStepData.type === 'update'    ? 'Compare Next' :
+            currentStepData.type === 'sorted'    ? 'Next Pass' : 'Run'
           })</span>`
     : "Awaiting execution parameters.";
 
@@ -113,7 +113,22 @@ export default function InsertionSortPage() {
           <TheoryCard
             title="Insertion Sort"
             description="Insertion Sort builds a sorted list one element at a time. It picks each element from the unsorted section and inserts it at the correct position in the already-sorted left portion — just like how you arrange playing cards in your hand."
-            descriptionHi="Insertion Sort ek ek element karke sorted list banata hai. Har baar unsorted part se ek element pick karta hai aur usse already-sorted left part mein sahi jagah pe insert kar deta hai — bilkul jaise aap haath mein playing cards sort karte ho."
+            descriptionHi="Insertion Sort ek ek element karke list ko sort karta hai. Yeh unsorted part se ek element uthata hai aur usko sorted part mein useki sahi jagah par fit (insert) kar deta hai — bilkul waise jaise hum haath mein patti (playing cards) jamate hain."
+            analogy={{
+              icon: "🃏",
+              title: "Playing Cards",
+              titleHi: "Playing Cards Sort",
+              desc: "Think of arranging cards in your hand. You pick one card from the unsorted pile and insert it into its correct position in the sorted cards you're already holding.",
+              descHi: "Sochiye aap haath mein cards jama rahe hain. Aap ek naya card uthate ho aur usko baaki jama hue cards ke beech uski sahi position pe fit kar dete ho."
+            }}
+            readingTip={{
+              en: "Think of it as dividing the array into 'sorted' (left) and 'unsorted' (right) parts. In each step, the first element of the unsorted part is moved to its correct position in the sorted part by shifting others.",
+              hi: "Isko aise socho ki array do part mein divided hai: left side 'sorted' aur right side 'unsorted'. Har turn pe, right side ka pehla number uthakar left side mein uski sahi jagah par fit kiya jata hai."
+            }}
+            quote={{
+              en: "\"Insertion Sort is highly efficient for small data and nearly sorted sets. It works exactly like a human would sort a physical stack of items.\"",
+              hi: "\"Insertion Sort chhote data aur almost sorted sets ke liye bahut fast hai. Yeh bilkul waise hi kaam karta hai jaise koi insaan physically cheezon ko sort karta hai.\""
+            }}
             complexities={[
               { case: "Best",    time: "n",  space: "1", note: "Already sorted array. Only n comparisons, 0 shifts." },
               { case: "Average", time: "n²", space: "1", note: "Random data. Each insert scans roughly half the sorted part." },
@@ -129,22 +144,40 @@ export default function InsertionSortPage() {
               "Faster than Bubble/Selection Sort in practice on small n.",
             ]}
             useCasesHi={[
-              "Best case O(n) — nearly-sorted arrays ke liye best hai.",
-              "Stable: barabar elements ka original order maintain hota hai.",
+              "Best case O(n) — agar array pehle se hi thoda bahut sorted hai toh bahut fast hai.",
+              "Stable hai: barabar elements ka original order kharab nahi hota.",
               "In-place: sirf O(1) extra memory lagti hai.",
-              "Online: stream of data ko aate aate sort kar sakta hai.",
-              "Timsort (Python, Java) mein chhote subarrays ke liye use hota hai.",
-              "Chhote n ke liye Bubble/Selection Sort se tez hota hai in practice.",
+              "Online sorting ke liye accha hai (jaise ek ek karke naye numbers lagatar aa rahe hon).",
+              "Timsort (Python, Java ka default sort) mein chhote subarrays ke liye yahi use hota hai.",
+              "Chhote arrays me yeh Bubble Sort aur Selection Sort dono se tez chalta hai in practice.",
             ]}
+            howItWorks={{
+              en: [
+                { icon: "1️⃣", text: "The first element is already 'sorted'. Start from the second element." },
+                { icon: "2️⃣", text: "Pick the next element (the 'key'). Compare it with elements on its left." },
+                { icon: "3️⃣", text: "Shift all left-side elements that are BIGGER than the key one step to the right." },
+                { icon: "4️⃣", text: "Place the key in the empty gap left by the shifting. It's now in the correct spot!" },
+                { icon: "5️⃣", text: "Pick the next element and repeat — the sorted portion grows one element at a time." },
+                { icon: "✅", text: "Once you've inserted every element, the array is fully sorted!" },
+              ],
+              hi: [
+                { icon: "1️⃣", text: "Pehla element pehle se 'sorted' maana jaata hai. Shuru karo doosre element se." },
+                { icon: "2️⃣", text: "Agla number uthaao (yeh 'key' hai). Left side ke numbers se compare karo." },
+                { icon: "3️⃣", text: "Left mein jo bhi number key se BADE hain, unhe ek jagah right mein khiskaao." },
+                { icon: "4️⃣", text: "Khiskaane se jo jagah khaali hui, wahan key ko baith do. Key ab sahi jagah hai!" },
+                { icon: "5️⃣", text: "Agla number uthaao aur yahi karo — sorted hissa ek ek karke barhta jaata hai." },
+                { icon: "✅", text: "Jab saare numbers insert ho jaayein, array sort ho jaata hai!" },
+              ]
+            }}
             example={{
               array: [5, 3, 8, 1, 4],
               steps: [
-                { desc: "Starting array. First element [5] is already 'sorted'. We'll insert each next element.", descHi: "Shuru ka array. Pehla element [5] already 'sorted' maana jaata hai. Ab baaki ko insert karenge.", array: [5, 3, 8, 1, 4], highlight: [0] },
-                { desc: "Pick key = 3 (index 1). Compare with 5. Since 5 > 3, shift 5 right. Insert 3 at index 0. 🔄", descHi: "Key = 3 (index 1). 5 se compare karo. 5 > 3 hai, 5 ko daayein shift karo. 3 ko index 0 pe insert karo. 🔄", array: [3, 5, 8, 1, 4], highlight: [0, 1] },
-                { desc: "Sorted part is [3, 5]. Pick key = 8 (index 2). 8 > 5, no shift. Insert 8 in place. ✓", descHi: "Sorted part [3, 5] hai. Key = 8 (index 2). 8 > 5 hai, shift nahi. 8 wahi raha. ✓", array: [3, 5, 8, 1, 4], highlight: [2] },
-                { desc: "Sorted part is [3, 5, 8]. Pick key = 1. Shift 8, 5, 3 right. Insert 1 at index 0. 🔄", descHi: "Sorted part [3, 5, 8] hai. Key = 1. 8, 5, 3 ko shift karo. 1 ko index 0 pe insert karo. 🔄", array: [1, 3, 5, 8, 4], highlight: [0, 1, 2, 3] },
-                { desc: "Sorted part is [1, 3, 5, 8]. Pick key = 4. Shift 8, 5. Insert 4 at index 2. 🔄", descHi: "Sorted part [1, 3, 5, 8] hai. Key = 4. 8, 5 shift karo. 4 ko index 2 pe insert karo. 🔄", array: [1, 3, 4, 5, 8], highlight: [2, 3, 4] },
-                { desc: "Array is fully sorted! ✨ Total shifts were fewer than Bubble Sort!", descHi: "Array poora sort ho gaya! ✨ Total shifts Bubble Sort se kam the!", array: [1, 3, 4, 5, 8], highlight: [0, 1, 2, 3, 4] },
+                { desc: "Starting array. First element [5] is already 'sorted'. We'll insert each next element.", descHi: "Starting array. Pehla number [5] already 'sorted' maana jaata hai. Ab aage ke numbers ko ek-ek karke insert karenge.", array: [5, 3, 8, 1, 4], highlight: [0] },
+                { desc: "Pick key = 3 (index 1). Compare with 5. Since 5 > 3, shift 5 right. Insert 3 at index 0. 🔄", descHi: "Naya number 3 uthaya. 5 se compare kiya. 5 bada hai, toh 5 ko peeche (right) khiskaya. Aur 3 ko start me laga diya. 🔄", array: [3, 5, 8, 1, 4], highlight: [0, 1] },
+                { desc: "Sorted part is [3, 5]. Pick key = 8 (index 2). 8 > 5, no shift. Insert 8 in place. ✓", descHi: "Ab [3, 5] sort ho gaye hain. Naya number 8 uthaya. 8 toh 5 se bada hi hai, toh kisi ko khiskane ki zaroorat nahi. ✓", array: [3, 5, 8, 1, 4], highlight: [2] },
+                { desc: "Sorted part is [3, 5, 8]. Pick key = 1. Shift 8, 5, 3 right. Insert 1 at index 0. 🔄", descHi: "Ab [3, 5, 8] sort ho gaye. Naya number 1. Yeh toh sabse chhota hai! Toh 8, 5, 3 sabko peeche khiskaya aur 1 ko starting me daal diya. 🔄", array: [1, 3, 5, 8, 4], highlight: [0, 1, 2, 3] },
+                { desc: "Sorted part is [1, 3, 5, 8]. Pick key = 4. Shift 8, 5. Insert 4 at index 2. 🔄", descHi: "Ab [1, 3, 5, 8] sorted hain. Aakhiri number 4 uthaya. 8 aur 5 ko khiskaya aur 4 ko 3 ke theek baad fit kar diya. 🔄", array: [1, 3, 4, 5, 8], highlight: [2, 3, 4] },
+                { desc: "Array is fully sorted! ✨ Total shifts were fewer than Bubble Sort!", descHi: "Array poora sort ho gaya! ✨ Total shifts Bubble Sort se kaafi kam the!", array: [1, 3, 4, 5, 8], highlight: [0, 1, 2, 3, 4] },
               ],
             }}
             code={{

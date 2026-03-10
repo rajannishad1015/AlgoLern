@@ -28,11 +28,15 @@ export function generateInsertionSortSteps(arr: number[]): AlgorithmStep[] {
 
       a[j + 1] = a[j];
       
+      // Keep key visible in the "vacated" spot for visualization purposes
+      const visArray = [...a];
+      visArray[j] = key;
+
       steps.push({
         id: steps.length,
         type: 'update',
         indices: [j, j + 1],
-        values: { array: [...a] },
+        values: { array: visArray },
         description: `Moved ${a[j]} to the right.`,
       });
 
