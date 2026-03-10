@@ -21,6 +21,8 @@ interface ControlBarProps {
   onRandomize?: () => void;
   onCustomInput?: () => void;
   stepDescription?: string;
+  hideRandomizeText?: string;
+  customInputText?: string;
 }
 
 // Speed map: slider value 1-5 → ms delay
@@ -52,7 +54,9 @@ export function ControlBar({
   speed,
   onRandomize,
   onCustomInput,
-  stepDescription
+  stepDescription,
+  hideRandomizeText,
+  customInputText
 }: ControlBarProps) {
   
   return (
@@ -153,7 +157,7 @@ export function ControlBar({
               onClick={onRandomize}
               className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-[#252840] hover:bg-[#2f3352] text-slate-200 text-sm font-medium transition-colors border border-[#3a3e5e]"
             >
-              Randomize
+              {hideRandomizeText || "Randomize"}
             </button>
           )}
           {onCustomInput && (
@@ -161,7 +165,7 @@ export function ControlBar({
               onClick={onCustomInput}
               className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold shadow-[0_0_15px_rgba(99,102,241,0.25)] transition-colors"
             >
-              Custom Input
+              {customInputText || "Custom Input"}
             </button>
           )}
         </div>
