@@ -1,141 +1,331 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useVisualizerStore } from "@/lib/store/visualizerStore";
-import { generateHashTableSteps, HashTableState } from "@/lib/algorithms/data-structures/hashTable";
+import {
+  generateHashTableSteps,
+  HashTableState,
+} from "@/lib/algorithms/data-structures/hashTable";
 import { ControlBar } from "@/components/visualizer/ControlBar";
+import { HashTableViz } from "@/components/d3/HashTableViz";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, Minus, Search } from "lucide-react";
+import { VisualizerFrame } from "@/components/visualizer/VisualizerFrame";
+import { TheoryCard } from "@/components/visualizer/TheoryCard";
 
 const TABLE_SIZE = 7;
 
-function HashTableViz({ table, highlightBucket }: { table: HashTableState; highlightBucket?: number }) {
-  return (
-    <div className="grid gap-2 p-4 h-full overflow-y-auto">
-      {table.map((bucket, i) => (
-        <div
-          key={i}
-          className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors border ${
-            highlightBucket === i ? 'border-accent-primary bg-accent-primary/10' : 'border-border bg-bg-secondary'
-          }`}
-        >
-          <div className="w-8 h-8 rounded-md bg-bg-card border border-border flex items-center justify-center text-xs font-mono font-bold text-text-muted shrink-0">
-            {i}
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            {bucket.length === 0 ? (
-              <span className="text-xs font-mono text-text-muted">empty</span>
-            ) : (
-              bucket.map((entry, j) => (
-                <div key={j} className="flex items-center gap-1 bg-bg-card border border-border rounded px-2 py-1">
-                  <span className="text-xs font-mono text-accent-secondary">&quot;{entry.key}&quot;</span>
-                  <span className="text-text-muted text-xs">→</span>
-                  <span className="text-xs font-mono text-text-primary">&quot;{entry.value}&quot;</span>
-                </div>
-              ))
-            )}
-          </div>
-          {bucket.length > 1 && (
-            <span className="ml-auto text-xs text-amber-400 font-mono">⚠ collision chain ({bucket.length})</span>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
+const HASH_TABLE_THEORY = {
+  en: {
+    description:
+      "A Hash Table is a data structure that implements an associative array abstract data type, a structure that can map keys to values. It uses a hash function to compute an index, also called a hash code, into an array of buckets or slots, from which the desired value can be found.",
+    howItWorks: [
+      "Hashing: A key is passed into a hash function to get an integer index.",
+      "Modulo: The index is reduced to fit the array size (index % table_size).",
+      "Storage: The key-value pair is stored at that specific bucket.",
+      "Collisions: If two keys hash to the same bucket, it's called a collision. We use Separate Chaining (Linked Lists) to handle them here.",
+    ],
+    analogy:
+      "Imagine a post office with PO Boxes (buckets). The Hash Function is the mail sorting machine. It looks at the ZIP code on your letter (the Key) and immediately knows exactly which PO Box number to drop it into. If multiple letters go to the same PO Box, the mailman just stacks them together (this stack is our Linked List / Collision Chain).",
+    timeComplexity: {
+      best: "O(1)",
+      average: "O(1)",
+      worst: "O(n)",
+    },
+    spaceComplexity: "O(n)",
+    pseudocode: `class HashTable:
+    def __init__(self, size):
+        self.size = size
+        self.table = [[] for _ in range(self.size)]
+        
+    def _hash(self, key):
+        # Calculate sum of ASCII chars
+        sum = 0
+        for char in key:
+            sum += ord(char)
+        return sum % self.size
+        
+    def insert(self, key, value):
+        idx = self._hash(key)
+        # Check if key exists and update
+        for i, kv in enumerate(self.table[idx]):
+            if kv[0] == key:
+                self.table[idx][i] = (key, value)
+                return
+        # Or append to the chain
+        self.table[idx].append((key, value))
+        
+    def get(self, key):
+        idx = self._hash(key)
+        for kv in self.table[idx]:
+            if kv[0] == key: return kv[1]
+        return None`,
+  },
+  hi: {
+    description:
+      "Hash Table ek aisi data structure hai jo fast key-value lookups ke liye use hoti hai. Ek 'hash function' key ko ek integer array index mein convert karta hai jisse hum directly apne data tak pahunch sakte hain.",
+    howItWorks: [
+      "Hashing: Key ko ek function mein dalo jo ek number dega.",
+      "Modulo: Us number ko table size se mod ('%') karo taaki index array limit ke andar rahe.",
+      "Storage: Array ke us index (bucket) par jao aur value save kar do.",
+      "Collisions: Agar do alag keys ka same index aa jaye usko collision bolte hain. Yahan hum uske liye har bucket mein 'Linked List' (Separate Chaining) maintain karte hain.",
+    ],
+    analogy:
+      "Socho ek gym locker room hai. Hash Function wahan ka smart receptionist hai. Aap apna naam (Key) batate ho, aur receptionist ek calculation dimaag me karke turant aapko ek specific locker number deta hai. Agar ek locker mein do judwa bhaiyon ka samaan rakhna ho, toh dono bag locker ke andar ek ke piche ek rakh diye jate hain (Collision Chaining).",
+    timeComplexity: {
+      best: "O(1)",
+      average: "O(1)",
+      worst: "O(n) - agar saab me collisions ho",
+    },
+    spaceComplexity: "O(n)",
+    pseudocode: `class HashTable:
+    def __init__(self, size):
+        self.size = size
+        self.table = [[] for _ in range(self.size)] # Array of LinkedLists
+        
+    def _hash(self, key):
+        total = 0
+        for ch in key:
+            total += ord(ch)
+        return total % self.size
+        
+    def insert(self, key, value):
+        idx = self._hash(key)
+        for kv in self.table[idx]:
+            if kv.key == key: 
+                kv.value = value
+                return
+        self.table[idx].append(Node(key, value))`,
+  },
+};
 
-const defaultOps: { type: 'insert' | 'search' | 'delete'; key: string; value?: string }[] = [
-  { type: 'insert', key: 'name', value: 'Alice' },
-  { type: 'insert', key: 'age', value: '25' },
-  { type: 'insert', key: 'city', value: 'Delhi' },
-  { type: 'insert', key: 'lang', value: 'TypeScript' },
-  { type: 'search', key: 'age' },
-  { type: 'delete', key: 'city' },
-  { type: 'insert', key: 'mane', value: 'Bob' }, // deliberate collision example
-];
+type Operation = {
+  type: "insert" | "search" | "delete";
+  key: string;
+  value?: string;
+};
 
 export default function HashTablePage() {
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const [tableState, setTableState] = useState<HashTableState>(Array.from({ length: TABLE_SIZE }, () => []));
-  const [highlightBucket, setHighlightBucket] = useState<number | undefined>();
+  const [opsList, setOpsList] = useState<Operation[]>([
+    { type: "insert", key: "Alice", value: "25" },
+    { type: "insert", key: "Bob", value: "30" },
+    { type: "insert", key: "Caleb", value: "22" }, // Bob and Caleb often collide on small tables
+  ]);
+
+  const [inputKey, setInputKey] = useState("");
+  const [inputValue, setInputValue] = useState("");
 
   const {
-    steps, currentStepIndex, isPlaying, speed,
-    setSteps, setIsPlaying, setSpeed,
-    stepForward, stepBackward, resetVisualizer, setAlgorithmId,
+    steps,
+    currentStepIndex,
+    isPlaying,
+    speed,
+    setSteps,
+    setIsPlaying,
+    setSpeed,
+    stepForward,
+    stepBackward,
+    resetVisualizer,
+    setAlgorithmId,
   } = useVisualizerStore();
-
-  const defaultOps: { type: 'insert' | 'search' | 'delete'; key: string; value?: string }[] = [
-    { type: 'insert', key: 'name', value: 'Alice' },
-    { type: 'insert', key: 'age', value: '25' },
-    { type: 'insert', key: 'city', value: 'Delhi' },
-    { type: 'insert', key: 'lang', value: 'TypeScript' },
-    { type: 'search', key: 'age' },
-    { type: 'delete', key: 'city' },
-    { type: 'insert', key: 'mane', value: 'Bob' }, // deliberate collision example
-  ];
 
   useEffect(() => {
     setAlgorithmId("hash-table");
-    const generatedSteps = generateHashTableSteps(TABLE_SIZE, defaultOps);
+    const generatedSteps = generateHashTableSteps(TABLE_SIZE, opsList);
     setSteps(generatedSteps);
-    return () => { resetVisualizer(); if (timerRef.current) clearInterval(timerRef.current); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resetVisualizer, setAlgorithmId, setSteps]);
+    resetVisualizer();
+  }, [opsList, resetVisualizer, setAlgorithmId, setSteps]);
 
   const currentStepData = steps[currentStepIndex];
 
-  // Derived state instead of effect synced
-  const tableStateDisplay = currentStepData?.values?.table ? (currentStepData.values.table as HashTableState) : Array.from({ length: TABLE_SIZE }, () => []);
-  const highlightBucketDisplay = currentStepData?.indices?.[0] !== undefined ? currentStepData.indices[0] : undefined;
-
   useEffect(() => {
+    let timer: NodeJS.Timeout;
     if (isPlaying) {
-      timerRef.current = setInterval(() => {
+      timer = setInterval(() => {
         if (currentStepIndex < steps.length - 1) stepForward();
-        else { setIsPlaying(false); if (timerRef.current) clearInterval(timerRef.current); }
+        else setIsPlaying(false);
       }, speed);
-    } else if (timerRef.current) { clearInterval(timerRef.current); }
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [isPlaying, currentStepIndex, steps.length, speed, stepForward, setIsPlaying]);
+    }
+    return () => clearInterval(timer);
+  }, [
+    isPlaying,
+    currentStepIndex,
+    steps.length,
+    speed,
+    stepForward,
+    setIsPlaying,
+  ]);
+
+  const handleQueueOp = (type: "insert" | "delete" | "search") => {
+    if (!inputKey.trim()) return;
+    if (type === "insert" && !inputValue.trim()) return;
+
+    setOpsList([
+      ...opsList,
+      { type, key: inputKey.trim(), value: inputValue.trim() },
+    ]);
+    setInputKey("");
+    if (type === "insert") setInputValue("");
+    setTimeout(() => setIsPlaying(true), 100);
+  };
 
   return (
-    <div className="flex flex-col h-full w-full max-w-5xl mx-auto p-4 gap-4">
-      <div className="flex justify-between items-start">
+    <div className="flex flex-col min-h-[calc(100vh-4rem)] flex-1 w-full max-w-7xl mx-auto p-4 gap-4">
+      <div className="flex justify-between items-start flex-col sm:flex-row gap-2 shrink-0">
         <div>
-          <h1 className="text-3xl font-display font-bold text-text-primary">Hash Table</h1>
+          <h1 className="text-3xl font-display font-bold text-text-primary">
+            Hash Table
+          </h1>
           <p className="text-text-secondary mt-1">
-            Maps keys to values using a hash function. Collisions are handled via <strong>chaining</strong> (linked list per bucket).
+            Maps keys to values with{" "}
+            <span className="text-accent-primary font-bold">O(1)</span> average
+            time. Uses <strong>Separate Chaining</strong> for collisions.
           </p>
         </div>
         <div className="bg-bg-card border border-border rounded-xl p-3 text-xs font-mono text-text-muted">
-          Table Size: <span className="text-accent-primary font-bold">{TABLE_SIZE}</span> buckets
+          Table Size:{" "}
+          <span className="text-accent-primary font-bold">{TABLE_SIZE}</span>
         </div>
       </div>
 
-      <div className="flex-1 min-h-[350px] bg-bg-card border border-border rounded-xl overflow-hidden">
-        <HashTableViz table={tableState} highlightBucket={highlightBucket} />
-      </div>
+      <div className="flex-1 flex flex-col lg:flex-row gap-4 mb-10">
+        {/* Left Col - Viz */}
+        <div className="w-full lg:w-[65%] flex flex-col gap-4">
+          <VisualizerFrame
+            title="Hash Table (Separate Chaining)"
+            description={currentStepData?.description || "Ready"}
+          >
+            {/* INLINE CONTROLS */}
+            <div className="flex gap-2 flex-wrap items-center bg-bg-card/80 backdrop-blur-md border border-border rounded-xl p-2 shadow-sm mb-2 w-fit relative z-20">
+              <Input
+                placeholder="Key"
+                value={inputKey}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setInputKey(e.target.value)
+                }
+                className="w-24 h-9 bg-bg-secondary border-border"
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                  if (e.key === "Enter") handleQueueOp("insert");
+                }}
+              />
+              <Input
+                placeholder="Val"
+                value={inputValue}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setInputValue(e.target.value)
+                }
+                className="w-20 h-9 bg-bg-secondary border-border"
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                  if (e.key === "Enter") handleQueueOp("insert");
+                }}
+              />
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  onClick={() => handleQueueOp("insert")}
+                  disabled={!inputKey || !inputValue}
+                  className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
+                >
+                  <Plus className="w-4 h-4 mr-1" /> Insert
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => handleQueueOp("search")}
+                  disabled={!inputKey}
+                  className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
+                >
+                  <Search className="w-4 h-4 mr-1" /> Find
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleQueueOp("delete")}
+                  disabled={!inputKey}
+                  className="hover:bg-red-500/10 hover:text-red-400"
+                >
+                  <Minus className="w-4 h-4 mr-1" /> Delete
+                </Button>
+              </div>
+            </div>
 
-      <div className="bg-bg-card border border-border rounded-lg p-4">
-        <p className="text-text-primary font-mono text-sm">{currentStepData?.description || "Ready to visualize..."}</p>
-        {currentStepData?.values?.foundValue && (
-          <div className="mt-2 text-xs font-mono bg-emerald-500/10 border border-emerald-500/30 p-2 rounded text-emerald-400">
-            ✓ Found: {String(currentStepData.values.foundValue)}
-          </div>
-        )}
-      </div>
+            <HashTableViz
+              currentStepData={currentStepData}
+              tableSize={TABLE_SIZE}
+            />
+          </VisualizerFrame>
 
-      <ControlBar
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onStepForward={stepForward}
-        onStepBackward={stepBackward}
-        onReset={resetVisualizer}
-        onSpeedChange={setSpeed}
-        isPlaying={isPlaying}
-        currentStep={currentStepIndex}
-        totalSteps={steps.length}
-        speed={speed}
-      />
+          <ControlBar
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            onStepForward={stepForward}
+            onStepBackward={stepBackward}
+            onReset={() => {
+              resetVisualizer();
+              setOpsList([{ type: "insert", key: "Alice", value: "25" }]);
+            }}
+            onSpeedChange={setSpeed}
+            isPlaying={isPlaying}
+            currentStep={currentStepIndex}
+            totalSteps={steps.length}
+            speed={speed}
+          />
+        </div>
+
+        {/* Right Col - Theory */}
+        <div className="w-full lg:w-[35%] overflow-y-auto">
+          <TheoryCard
+            title="Hash Table"
+            description={HASH_TABLE_THEORY.en.description}
+            descriptionHi={HASH_TABLE_THEORY.hi.description}
+            howItWorks={{
+              en: HASH_TABLE_THEORY.en.howItWorks.map((text) => ({
+                icon: "circle-dot",
+                text,
+              })),
+              hi: HASH_TABLE_THEORY.hi.howItWorks.map((text) => ({
+                icon: "circle-dot",
+                text,
+              })),
+            }}
+            analogy={{
+              icon: "lock",
+              title: "Locker Room",
+              titleHi: "Locker Room",
+              desc: HASH_TABLE_THEORY.en.analogy,
+              descHi: HASH_TABLE_THEORY.hi.analogy,
+            }}
+            complexities={[
+              {
+                case: "Best",
+                time: HASH_TABLE_THEORY.en.timeComplexity.best,
+                space: HASH_TABLE_THEORY.en.spaceComplexity,
+              },
+              {
+                case: "Average",
+                time: HASH_TABLE_THEORY.en.timeComplexity.average,
+                space: HASH_TABLE_THEORY.en.spaceComplexity,
+              },
+              {
+                case: "Worst",
+                time: HASH_TABLE_THEORY.en.timeComplexity.worst,
+                space: HASH_TABLE_THEORY.en.spaceComplexity,
+              },
+            ]}
+            useCases={[
+              "Database indexing",
+              "Caching (Memcached, Redis)",
+              "Symbol tables in compilers",
+            ]}
+            useCasesHi={[
+              "Database mein data dhoondhna",
+              "Caching karna jaldi access ke liye",
+              "Compilers mein variables track karna",
+            ]}
+            pseudocode={HASH_TABLE_THEORY.en.pseudocode}
+          />
+        </div>
+      </div>
     </div>
   );
 }

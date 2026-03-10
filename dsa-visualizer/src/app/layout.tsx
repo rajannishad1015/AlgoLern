@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
-import { Bebas_Neue, JetBrains_Mono } from "next/font/google";
+import { Bebas_Neue, JetBrains_Mono, Geist } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CustomCursor } from "@/components/layout/CustomCursor";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const bebasNeue = Bebas_Neue({
   weight: "400",
@@ -26,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
       <body
         className={`${bebasNeue.variable} ${jetbrainsMono.variable} antialiased`}
       >

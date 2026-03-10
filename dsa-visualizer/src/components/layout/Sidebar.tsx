@@ -41,6 +41,7 @@ const sections = [
       { label: "Queue", href: "/data-structures/queue" },
       { label: "Singly Linked List", href: "/data-structures/linked-list" },
       { label: "Doubly Linked List", href: "/data-structures/doubly-linked-list" },
+      { label: "Circular Linked List", href: "/data-structures/circular-linked-list" },
       { label: "Hash Table", href: "/data-structures/hash-table" },
       { label: "Priority Queue", href: "/data-structures/priority-queue" },
       { label: "Deque", href: "/data-structures/deque" },

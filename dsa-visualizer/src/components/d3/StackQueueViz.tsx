@@ -71,10 +71,19 @@ export function StackQueueViz({ currentStepData, layout }: StackQueueVizProps) {
 
       // Configuration
       const boxW = layout === 'vertical' ? 140 : 70;
-      const boxH = layout === 'vertical' ? 45 : 80;
-      const padding = 8;
-      
       const totalElements = renderData.length;
+      
+      // Auto-scale box size for Stack so all elements always fit in the container
+      const availableH = height - 120; // Reserve space for label + bottom margin
+      const minBoxH = layout === 'vertical' ? 16 : 80;
+      const maxBoxH = layout === 'vertical' ? 50 : 80;
+      const minPad = 4;
+      const maxPad = 8;
+      // When many elements, shrink box + padding proportionally
+      const rawBoxH = totalElements > 0 ? Math.floor((availableH) / totalElements) - minPad : maxBoxH;
+      const boxH = Math.max(minBoxH, Math.min(maxBoxH, rawBoxH));
+      const padding = boxH < 28 ? minPad : maxPad;
+      const fontSize = boxH < 24 ? 11 : boxH < 35 ? 14 : 20;
 
       // Draw Container Background (Layer 0)
       let bgGroup = svg.select<SVGGElement>('.bg-group');
@@ -220,9 +229,9 @@ export function StackQueueViz({ currentStepData, layout }: StackQueueVizProps) {
       const nodesData: NodeData[] = renderData.map((val, i) => {
         let x = 0, y = 0;
         if (layout === 'vertical') {
-          // Bottom up
-          const invertedIndex = totalElements - 1 - i;
-          y = (height - 60 - 10 - boxH) - invertedIndex * (boxH + padding); // -10 to pad from bottom of beaker
+          // Stack: index 0 = BOTTOM (first pushed), index n-1 = TOP (last pushed)
+          // y increases downward in SVG, so higher index = lower y = higher on screen = TOP
+          y = (height - 60 - 10 - boxH) - i * (boxH + padding);
           x = width / 2 - boxW / 2;
         } else {
           // Left to right - Queue
@@ -299,23 +308,25 @@ export function StackQueueViz({ currentStepData, layout }: StackQueueVizProps) {
           if (currentStepData?.indices?.includes(d.i) && currentStepData.type === 'insert') return '#111827';
           return '#ffffff';
         })
-        .attr("font-size", "20px")
+        .attr("font-size", `${fontSize}px`)
         .attr("font-family", "monospace")
         .attr("font-weight", "bold");
         
-      // Index Label side
-      nodeEnter.append("text")
-        .attr("class", "idx-text")
-        .attr("x", layout === 'vertical' ? -25 : boxW / 2)
-        .attr("y", layout === 'vertical' ? boxH / 2 : boxH + 20)
-        .attr("dy", layout === 'vertical' ? "0.35em" : "0")
-        .attr("text-anchor", layout === 'vertical' ? "end" : "middle")
-        .text(d => layout === 'vertical' ? `idx ${d.i}` : d.i)
-        .attr("fill", isDark ? '#64748b' : '#94a3b8')
-        .attr("font-size", "10px")
-        .attr("font-family", "monospace")
-        .attr("font-weight", "bold")
-        .attr("text-transform", "uppercase");
+      // Index Label side (only show when boxes are large enough)
+      if (boxH >= 24) {
+        nodeEnter.append("text")
+          .attr("class", "idx-text")
+          .attr("x", layout === 'vertical' ? -25 : boxW / 2)
+          .attr("y", layout === 'vertical' ? boxH / 2 : boxH + 20)
+          .attr("dy", layout === 'vertical' ? "0.35em" : "0")
+          .attr("text-anchor", layout === 'vertical' ? "end" : "middle")
+          .text(d => layout === 'vertical' ? `idx ${d.i}` : d.i)
+          .attr("fill", isDark ? '#64748b' : '#94a3b8')
+          .attr("font-size", "10px")
+          .attr("font-family", "monospace")
+          .attr("font-weight", "bold")
+          .attr("text-transform", "uppercase");
+      }
 
       // UPDATE
       const nodeUpdate = nodeEnter.merge(nodes);

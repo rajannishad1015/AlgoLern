@@ -3,15 +3,15 @@
 import { useEffect, useState, useRef } from "react";
 import { useVisualizerStore } from "@/lib/store/visualizerStore";
 import { AlgorithmStep } from "@/lib/types/algorithm";
-import { LinkedListViz } from "@/components/d3/LinkedListViz";
+import { CircularLinkedListViz } from "@/components/d3/CircularLinkedListViz";
 import { ControlBar } from "@/components/visualizer/ControlBar";
 import { TheoryCard } from "@/components/visualizer/TheoryCard";
 import { VisualizerFrame } from "@/components/visualizer/VisualizerFrame";
 
-const MAX_NODES = 8; // Visual limit
+const MAX_NODES = 8; // Max nodes allowed visually
 
-// ─── Generate steps for ONE linked list operation ────────────────────────────
-function generateSingleLinkedListSteps(
+// ─── Generate steps for ONE circular linked list operation ─────────────────
+function generateSingleCircularLinkedListSteps(
   currentList: number[],
   op:
     | { type: "insertHead"; value: number }
@@ -26,7 +26,7 @@ function generateSingleLinkedListSteps(
   steps.push({
     id: 0, type: "highlight", indices: [],
     values: { list: [...list] },
-    description: `List has ${list.length} node${list.length !== 1 ? "s" : ""}. HEAD → ${list.length > 0 ? list[0] : "NULL"}.`,
+    description: `List has ${list.length} node${list.length !== 1 ? "s" : ""}. HEAD → ${list.length > 0 ? list[0] : "NULL"}, TAIL → ${list.length > 0 ? list[list.length - 1] : "NULL"}. TAIL.next points to HEAD.`,
   });
 
   if (op.type === "insertHead") {
@@ -34,18 +34,25 @@ function generateSingleLinkedListSteps(
     steps.push({
       id: 1, type: "highlight", indices: [],
       values: { list: [...list], newNode: val },
-      description: `Creating new node [${val}]. Will point to current HEAD → ${list.length > 0 ? list[0] : "NULL"}.`,
+      description: `Creating new node [${val}]. Needs to point NEXT to current HEAD → ${list.length > 0 ? list[0] : "NULL"}.`,
     });
+    if (list.length > 0) {
+      steps.push({
+        id: 2, type: "visit", indices: [list.length - 1],
+        values: { list: [...list], newNode: val },
+        description: `Visiting TAIL node [${list[list.length - 1]}]. Its NEXT must be updated to point to the new HEAD [${val}].`,
+      });
+    }
     list.unshift(val);
     steps.push({
-      id: 2, type: "insert", indices: [0],
+      id: 3, type: "insert", indices: [0],
       values: { list: [...list] },
-      description: `Node [${val}] is now the new HEAD. Pointer updated: [${val}] → ${list.length > 1 ? list[1] : "NULL"}.`,
+      description: `Node [${val}] is now the HEAD. TAIL → HEAD.`,
     });
     steps.push({
-      id: 3, type: "done", indices: [],
+      id: 4, type: "done", indices: [],
       values: { list: [...list] },
-      description: `Insert Head complete. List size: ${list.length}. New HEAD = [${val}].`,
+      description: `Insert Head complete. New HEAD = [${val}].`,
     });
 
   } else if (op.type === "insertTail") {
@@ -55,25 +62,30 @@ function generateSingleLinkedListSteps(
       steps.push({
         id: 1, type: "insert", indices: [0],
         values: { list: [...list] },
-        description: `List was empty. Node [${val}] becomes both HEAD and TAIL. Points to NULL.`,
+        description: `List was empty. Node [${val}] becomes HEAD and TAIL. It points to itself.`,
       });
     } else {
       steps.push({
         id: 1, type: "visit", indices: [list.length - 1],
         values: { list: [...list], newNode: val },
-        description: `Traversing list to find TAIL node [${list[list.length - 1]}] whose NEXT = NULL.`,
+        description: `Visiting current TAIL node [${list[list.length - 1]}]. Will link its NEXT → [${val}].`,
+      });
+      steps.push({
+        id: 2, type: "highlight", indices: [list.length - 1],
+        values: { list: [...list], newNode: val },
+        description: `New TAIL [${val}] will point its NEXT back to HEAD [${list[0]}].`,
       });
       list.push(val);
       steps.push({
-        id: 2, type: "insert", indices: [list.length - 1],
+        id: 3, type: "insert", indices: [list.length - 1],
         values: { list: [...list] },
-        description: `Tail's NEXT now points to new node [${val}]. [${val}] → NULL (new TAIL).`,
+        description: `New TAIL is [${val}]. [${val}].NEXT → HEAD.`,
       });
     }
     steps.push({
       id: steps.length, type: "done", indices: [],
       values: { list: [...list] },
-      description: `Insert Tail complete. List size: ${list.length}. TAIL = [${val}].`,
+      description: `Insert Tail complete. New TAIL = [${val}].`,
     });
 
   } else if (op.type === "deleteHead") {
@@ -83,18 +95,36 @@ function generateSingleLinkedListSteps(
         values: { list: [] },
         description: `List is EMPTY — nothing to delete.`,
       });
-    } else {
+    } else if (list.length === 1) {
       const deleted = list[0];
       steps.push({
         id: 1, type: "delete", indices: [0],
         values: { list: [...list] },
-        description: `Deleting HEAD node [${deleted}]. Moving HEAD pointer to [${list.length > 1 ? list[1] : "NULL"}].`,
+        description: `Deleting the only node [${deleted}]. List becomes empty.`,
+      });
+      list.pop();
+      steps.push({
+        id: 2, type: "done", indices: [],
+        values: { list: [] },
+        description: `List is now empty.`,
+      });
+    } else {
+      const deleted = list[0];
+      steps.push({
+        id: 1, type: "visit", indices: [list.length - 1],
+        values: { list: [...list] },
+        description: `Visiting TAIL node [${list[list.length - 1]}]. It must update its NEXT pointer to the new HEAD [${list[1]}].`,
+      });
+      steps.push({
+        id: 2, type: "delete", indices: [0],
+        values: { list: [...list] },
+        description: `Deleting old HEAD [${deleted}].`,
       });
       list.shift();
       steps.push({
-        id: 2, type: "done", indices: [],
+        id: 3, type: "done", indices: [],
         values: { list: [...list] },
-        description: `Delete Head complete. [${deleted}] removed. New HEAD = [${list.length > 0 ? list[0] : "NULL"}].`,
+        description: `Delete Head complete. New HEAD = [${list[0]}]. TAIL → HEAD.`,
       });
     }
 
@@ -110,31 +140,31 @@ function generateSingleLinkedListSteps(
       steps.push({
         id: 1, type: "delete", indices: [0],
         values: { list: [...list] },
-        description: `Deleting the only node [${deleted}]. HEAD → NULL.`,
+        description: `Deleting the only node [${deleted}].`,
       });
       list.pop();
       steps.push({
         id: 2, type: "done", indices: [],
         values: { list: [] },
-        description: `Delete Tail complete. List is now empty.`,
+        description: `List is now empty.`,
       });
     } else {
       const deleted = list[list.length - 1];
       steps.push({
         id: 1, type: "visit", indices: [list.length - 2],
         values: { list: [...list] },
-        description: `Traversing to second-to-last node [${list[list.length - 2]}]. Will set its NEXT → NULL.`,
+        description: `Visiting second-to-last node [${list[list.length - 2]}]. Setting its NEXT → HEAD [${list[0]}].`,
       });
       steps.push({
         id: 2, type: "delete", indices: [list.length - 1],
         values: { list: [...list] },
-        description: `Setting [${list[list.length - 2]}].NEXT = NULL. Disconnecting TAIL [${deleted}].`,
+        description: `Deleting old TAIL [${deleted}].`,
       });
       list.pop();
       steps.push({
         id: 3, type: "done", indices: [],
         values: { list: [...list] },
-        description: `Delete Tail complete. [${deleted}] removed. New TAIL = [${list.length > 0 ? list[list.length - 1] : "NULL"}].`,
+        description: `Delete Tail complete. New TAIL = [${list[list.length - 1]}].`,
       });
     }
   }
@@ -142,7 +172,7 @@ function generateSingleLinkedListSteps(
   return { steps, nextList: list };
 }
 
-export default function LinkedListPage() {
+export default function CircularLinkedListPage() {
   const [listArr, setListArr] = useState<number[]>([10, 20, 30]);
   const [inputValue, setInputValue] = useState("");
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -153,13 +183,12 @@ export default function LinkedListPage() {
     stepForward, stepBackward, resetVisualizer, setAlgorithmId,
   } = useVisualizerStore();
 
-  // Initialize with current list state
   useEffect(() => {
-    setAlgorithmId("linked-list");
+    setAlgorithmId("circular-linked-list");
     setSteps([{
       id: 0, type: "highlight", indices: [],
       values: { list: [...listArr] },
-      description: `Linked List loaded with ${listArr.length} nodes. HEAD = [${listArr[0]}].`,
+      description: `Circular Linked List loaded with ${listArr.length} nodes. HEAD = [${listArr[0]}]. Pointers form a ring.`,
     }]);
     return () => {
       resetVisualizer();
@@ -189,7 +218,7 @@ export default function LinkedListPage() {
       | { type: "deleteHead" }
       | { type: "deleteTail" }
   ) => {
-    const { steps: newSteps, nextList } = generateSingleLinkedListSteps(listArr, op);
+    const { steps: newSteps, nextList } = generateSingleCircularLinkedListSteps(listArr, op);
     resetVisualizer();
     setSteps(newSteps);
     setListArr(nextList);
@@ -203,7 +232,7 @@ export default function LinkedListPage() {
       setSteps([{
         id: 0, type: "highlight", indices: [],
         values: { list: [...listArr] },
-        description: `List is full (${MAX_NODES} nodes max). Delete a node first to make space.`,
+        description: `List is full (${MAX_NODES} nodes max). Delete a node first.`,
       }]);
       setInputValue("");
       return;
@@ -219,7 +248,7 @@ export default function LinkedListPage() {
       setSteps([{
         id: 0, type: "highlight", indices: [],
         values: { list: [...listArr] },
-        description: `List is full (${MAX_NODES} nodes max). Delete a node first to make space.`,
+        description: `List is full (${MAX_NODES} nodes max). Delete a node first.`,
       }]);
       setInputValue("");
       return;
@@ -237,7 +266,7 @@ export default function LinkedListPage() {
     setSteps([{
       id: 0, type: "highlight", indices: [],
       values: { list: [] },
-      description: `List cleared. HEAD → NULL.`,
+      description: `List cleared. Ring is broken.`,
     }]);
   };
 
@@ -249,7 +278,7 @@ export default function LinkedListPage() {
         + `<span class="text-indigo-400 italic ml-2">(${
             currentStepData.type === "insert"    ? "→ Inserted" :
             currentStepData.type === "delete"    ? "✕ Deleted" :
-            currentStepData.type === "visit"     ? "→ Traversing" :
+            currentStepData.type === "visit"     ? "🔄 Updating Pointers" :
             currentStepData.type === "done"      ? "✓ Done" : "Viewing"
           })</span>`
     : "Ready...";
@@ -257,14 +286,12 @@ export default function LinkedListPage() {
   return (
     <div className="bg-gray-50 dark:bg-[#080a12] min-h-screen">
       <VisualizerFrame
-        title="Singly Linked List"
-        description="A sequence of nodes where each node holds data and a pointer to the next node. Insert/Delete to see live animation."
-        complexity={{ time: "n", space: "n", difficulty: "Medium" }}
+        title="Circular Linked List"
+        description="A linked list where the last node points back to the first node instead of NULL, forming a continuous circle or ring."
+        complexity={{ time: "O(n)", space: "O(1)", difficulty: "Medium" }}
         controls={
           <div className="flex flex-col gap-4 w-full">
-            {/* Inline Action Row */}
             <div className="flex flex-col xl:flex-row gap-3 items-center bg-white/5 border border-black/10 dark:border-white/10 rounded-xl p-4">
-              {/* Input + Insert buttons */}
               <div className="flex-1 w-full flex items-center gap-2">
                 <input
                   type="number"
@@ -279,25 +306,24 @@ export default function LinkedListPage() {
                 <button
                   onClick={handleInsertHead}
                   className="px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-colors shadow-lg whitespace-nowrap text-sm"
-                  title="Insert at HEAD (O(1))"
+                  title="Insert at HEAD (O(n) due to tail update)"
                 >
                   + Head
                 </button>
                 <button
                   onClick={handleInsertTail}
                   className="px-4 py-2.5 rounded-lg bg-indigo-500 hover:bg-indigo-400 text-white font-semibold transition-colors shadow-lg whitespace-nowrap text-sm"
-                  title="Insert at TAIL (O(n))"
+                  title="Insert at TAIL (O(n) or O(1) with tail ptr)"
                 >
                   + Tail
                 </button>
               </div>
 
-              {/* Delete + Clear buttons */}
               <div className="w-full xl:w-auto flex gap-2">
                 <button
                   onClick={handleDeleteHead}
                   className="flex-1 xl:flex-none px-4 py-2.5 rounded-lg border border-orange-500/50 hover:bg-orange-500/10 text-orange-600 dark:text-orange-400 font-semibold transition-colors shadow-sm whitespace-nowrap text-sm"
-                  title="Remove HEAD (O(1))"
+                  title="Remove HEAD (O(n))"
                 >
                   − Head
                 </button>
@@ -334,101 +360,95 @@ export default function LinkedListPage() {
         }
         info={
           <TheoryCard
-            title="Singly Linked List"
-            description="Unlike arrays where elements are stored in contiguous memory, a Linked List stores elements (Nodes) anywhere in memory. Each Node holds its data and a 'pointer' (memory address) to the very next Node. The first node is the 'Head'. The last node points to 'Null', marking the end."
-            descriptionHi="Arrays line se memory leti hain, par Linked List ke elements (Nodes) memory mein kahin bhi ho sakte hain. Har Node ke paas do cheezein hoti hain: Apna Data, aur agle Node ka Pata (Pointer). Pehle node ko 'Head' kehte hain, aur aakhiri node 'Null' ko point karta hai."
+            title="Circular Linked List"
+            description="Unlike a Singly Linked List that ends with NULL, a Circular Linked List is a continuous loop. The last node (Tail) connects back to the first node (Head). There is no specific beginning or end!"
+            descriptionHi="Singly Linked List jahan NULL pe khtam ho jati hai, Circular Linked List ek gol chakkar (loop) banati hai. Aakhiri node wapas pehle node ko point karta hai, isliye iska koi end nahi hota!"
             analogy={{
-              icon: "🗺️",
-              title: "A Treasure Hunt with Clues",
-              titleHi: "Ek Treasure Hunt jisme chuppi slips hain",
-              desc: "Imagine a treasure hunt. You don't have a map showing all locations at once. Instead, you get the first clue (Head). That clue contains some gold (Data) and tells you exactly where to find the next clue (Pointer). You have to follow the clues one by one until a clue says 'No more clues' (Null).",
-              descHi: "Ek treasure hunt sochiye jahan aapko sab locations ka naksha ek sath nahi milta. Aapko sirf pehli parchi (Head) milti hai. Us parchi mein thoda khazana (Data) hota hai aur agli parchi kahan milegi uska pata (Pointer). Aapko ek ek karke parchiyan padhni padti hain jab tak 'Aage kuch nahi' (Null) na aaye."
+              icon: "⭕",
+              title: "Musical Chairs",
+              titleHi: "Musical Chairs ka Khel",
+              desc: "Think of people sitting in a circle playing musical chairs. Every person looks at the person sitting to their right. The last person automatically looks at the first person forming a closed circle. Nobody looks at 'nobody' (NULL).",
+              descHi: "Sochiye log ek gol ghere mein baithe hain. Har koi apne right wale ko dekh raha hai. Aakhiri insaan wapas pehle insaan ko dekhta hai jisse ek circle ban jata hai. Koi bhi hawa mein (NULL) nahi dekhta."
             }}
             readingTip={{
-              en: "To find the 5th item in a linked list, you MUST start at the Head and walk through nodes 1, 2, 3, and 4. You cannot jump straight to the 5th item like an Array (Array[4]). This makes searching slow O(n), but inserting at the head fast O(1).",
-              hi: "Agar aapko List ka 5th item nikalna hai, toh aapko Head se start karke node 1, 2, 3, 4 se guzarna hi padega. Aap direct 5th pe jump nahi kar sakte (jaise Array me). Isiliye dhoondhna O(n) slow hai, par Head pe insert karna O(1) fast hai."
+              en: "Because the tail points to the head, any insertions or deletions at the Head REQUIRE updating the Tail's pointer too! This makes operations slightly more complex than a standard list.",
+              hi: "Kyunki Tail wapas Head ko point karta hai, Head par kuch bhi naya jodne ya hatane par hume Tail ko bhi update karna padta hai! Isliye ye thoda complex hota hai."
             }}
             quote={{
-              en: '"Arrays demand strict order in a block; Linked Lists embrace chaos, connecting scattered islands with sturdy bridges."',
-              hi: '"Array ek train ki tarah hai jiske dibbe jude hain; Linked list alag-alag islands ki tarah hai jo ek dusre se pointers se jude hain."'
+              en: '"What goes around, comes around... literally, through the tail pointer!"',
+              hi: '"Duniya gol hai, aur is list ka pointer bhi!"'
             }}
             complexities={[
-              { case: "Insert Head", time: "1", space: "1", note: "Point new node to Head, then make it Head." },
-              { case: "Insert Tail", time: "n", space: "1", note: "Must traverse whole list to find Tail first." },
-              { case: "Delete Head", time: "1", space: "1", note: "Move Head pointer to next node." },
-              { case: "Search",      time: "n", space: "1", note: "Must visit every node one by one." },
+              { case: "Insert Head", time: "n", space: "1", note: "Must traverse to Tail to update its pointer to new Head." },
+              { case: "Insert Tail", time: "n", space: "1", note: "Must traverse to Tail, point new Tail to Head." },
+              { case: "Delete Tail", time: "n", space: "1", note: "Must traverse to second-to-last node." },
+              { case: "Traversal",   time: "n", space: "1", note: "Careful: must track starting node to prevent infinite loops." },
             ]}
             pseudocode={`class Node:
   constructor(data):
     data = data
     next = null
 
-class LinkedList:
+class CircularLinkedList:
   constructor():
     head = null
-    
-  insertHead(val):
-    newNode = Node(val)
-    newNode.next = head
-    head = newNode          # O(1) ⚡
-    
+
   insertTail(val):
-    curr = head
-    while curr.next != null:
-      curr = curr.next      # O(n) traverse
-    curr.next = Node(val)
-    
-  deleteHead():
-    if head != null:
-      head = head.next      # O(1) ⚡`}
+    newNode = Node(val)
+    if head == null:
+      head = newNode
+      newNode.next = head
+    else:
+      curr = head
+      while curr.next != head:
+        curr = curr.next
+      curr.next = newNode
+      newNode.next = head`}
             useCases={[
-              "Implementing Stacks and Queues dynamically.",
-              "Undo functionality in software.",
-              "Navigation systems (Previous/Next page).",
-              "Image viewers (Next/Previous photo).",
+              "Multiplayer board games (taking turns in a ring).",
+              "Operating System Round Robin scheduling.",
+              "Image carousels that loop continuously.",
+              "Advanced data structures like Fibonacci Heaps.",
             ]}
             useCasesHi={[
-              "Flexible Stacks aur Queues banane ke liye.",
-              "Software mein Undo features ke liye.",
-              "Browser ki Next/Previous history ke liye.",
-              "Photo gallery mein image switch karne ke liye."
+              "Multiplayer games mein sabki baari (turn) aane ke liye.",
+              "OS mein programs ko equal time dene (Round Robin) ke liye.",
+              "Website ke slider/carousels jo repeat hote rehte hain.",
+              "Advanced algorithms banane mein."
             ]}
             howItWorks={{
               en: [
-                { icon: "🟢", text: "Insert Head (O1): Create Node → point it to current Head → make it the new Head." },
-                { icon: "🔵", text: "Insert Tail (On): Traverse from Head all the way to the last node (next=NULL), then link new Node there." },
-                { icon: "🟠", text: "Delete Head (O1): Move Head pointer to Head.next. Old head is disconnected." },
-                { icon: "🔴", text: "Delete Tail (On): Traverse to second-to-last node. Set its next = NULL." }
+                { icon: "🟢", text: "Insert: Link the new node, and if adding to head/tail, ensure the circle remains unbroken." },
+                { icon: "🟠", text: "Delete: Connect the previous node completely over the deleted node. If deleting Head, Tail must update!" },
+                { icon: "🔄", text: "Endless: To traverse, we stop when curr.next == head, otherwise we would loop forever." }
               ],
               hi: [
-                { icon: "🟢", text: "Insert Head (O1): Naya node banao → uska next = purana Head → naya Head set karo." },
-                { icon: "🔵", text: "Insert Tail (On): Head se chalte jao jab tak last node na mile (next=NULL), wahan naya node jodo." },
-                { icon: "🟠", text: "Delete Head (O1): Head ko Head.next par set karo. Purana Head disconnect ho jayega." },
-                { icon: "🔴", text: "Delete Tail (On): Second-to-last tak traverse karo, uska next = NULL karo." }
+                { icon: "🟢", text: "Insert: Naya node jodo. Agar shuru/end mein joda toh circle tutne nahi dena." },
+                { icon: "🟠", text: "Delete: Piche wale ko uske agle se jodo. Agar Head hataya toh Tail ko naye Head pe set karo!" },
+                { icon: "🔄", text: "Endless: Print karte waqt loop rokne ke liye yaad rakhna padta hai ki shuru kahan se kiya tha." }
               ]
             }}
             example={{
               array: [],
               steps: [
-                { desc: "Empty List: HEAD → NULL.", descHi: "Khali list. HEAD Null ko indicate kar raha hai.", array: [], highlight: [] },
-                { desc: "INSERT HEAD 10: [10] created. HEAD → [10] → NULL.", descHi: "INSERT HEAD 10: 10 aya aur wahi HEAD ban gaya.", array: [10], highlight: [0] },
-                { desc: "INSERT HEAD 5: [5] created. HEAD → [5] → [10] → NULL.", descHi: "INSERT HEAD 5: 5 aaya, 10 ko point karta hai, khud naya HEAD bana.", array: [5, 10], highlight: [0] },
-                { desc: "INSERT TAIL 20: Traverse to [10] (next=NULL), then link [20]. HEAD → [5] → [10] → [20] → NULL.", descHi: "INSERT TAIL 20: 10 tak gaye (tail mila), wahan 20 jod diya.", array: [5, 10, 20], highlight: [2] },
-                { desc: "DELETE HEAD: HEAD moves from [5] to [10]. [5] is disconnected.", descHi: "DELETE HEAD: HEAD ko 10 pe khiska diya. 5 disconnect ho gaya.", array: [10, 20], highlight: [] },
+                { desc: "Empty List: HEAD → NULL.", descHi: "Khali list.", array: [], highlight: [] },
+                { desc: "INSERT 10: 10 points to itself. [10] → [10].", descHi: "INSERT 10: 10 khud ko hi point kar raha hai.", array: [10], highlight: [0] },
+                { desc: "INSERT 20 at Tail: 10 points to 20, 20 points back to 10.", descHi: "INSERT 20 (Tail): 10 → 20, aur 20 wapas 10 ko dekhta hai.", array: [10, 20], highlight: [1] },
               ]
             }}
           />
         }
       >
-        <div className="w-full h-full flex flex-col items-center justify-center relative min-h-[400px]">
+        <div className="w-full h-full flex flex-col items-center justify-center relative min-h-[440px]">
           {/* Status Badge */}
           <div className="absolute top-4 right-4 md:right-6 z-20 flex flex-col items-end gap-2 text-xs font-mono bg-white/80 dark:bg-[#0d0f1a]/80 backdrop-blur-sm p-2 rounded-lg border border-black/5 dark:border-white/5">
-            <span className="text-black/40 dark:text-slate-500 uppercase tracking-[0.2em] font-bold text-[9px] md:text-[10px] mb-1">List Status</span>
+            <span className="text-black/40 dark:text-slate-500 uppercase tracking-[0.2em] font-bold text-[9px] md:text-[10px] mb-1">CLL Status</span>
             <span className="text-indigo-600 dark:text-indigo-400 font-bold">Nodes: {listArr.length}/{MAX_NODES}</span>
             <span className="text-lime-600 dark:text-lime font-bold">HEAD: {listArr.length > 0 ? listArr[0] : "NULL"}</span>
             <span className="text-orange-500 dark:text-orange-400 font-bold">TAIL: {listArr.length > 0 ? listArr[listArr.length - 1] : "NULL"}</span>
+            <span className="text-purple-500 dark:text-purple-400 font-bold italic text-[9px]">TAIL.next → HEAD</span>
           </div>
-          <LinkedListViz currentStepData={currentStepData} />
+          <CircularLinkedListViz currentStepData={currentStepData} />
         </div>
       </VisualizerFrame>
     </div>
