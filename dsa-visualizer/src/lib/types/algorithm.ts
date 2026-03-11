@@ -8,7 +8,9 @@ export type StepType =
   | 'path'
   | 'sorted'
   | 'update'
-  | 'done';
+  | 'done'
+  | 'jump'
+  | 'not_found';
 
 export interface AlgorithmStep {
   id: number;

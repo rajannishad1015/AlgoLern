@@ -43,20 +43,26 @@ export function ArrayViz({ data, currentStepData }: ArrayVizProps) {
     const isDark = resolvedTheme !== 'light';
 
     const getBarColor = (index: number): string => {
-      if (currentStepData?.indices?.includes(index)) {
-        switch (currentStepData.type) {
-          case 'compare':   return '#cbff5e';
-          case 'swap':      return '#fb923c';
-          case 'update':    return '#fb923c';
-          case 'sorted':    return '#818cf8';
-          case 'highlight': return '#cbff5e';
+      const isHighlightedNode = currentStepData?.indices?.includes(index) || currentStepData?.nodeIds?.includes(index.toString());
+      if (isHighlightedNode) {
+        switch (currentStepData?.type) {
+          case 'compare':   return '#cbff5e'; // Lime
+          case 'swap':      return '#fb923c'; // Orange
+          case 'update':    return '#fb923c'; // Orange
+          case 'sorted':    return '#818cf8'; // Indigo
+          case 'highlight': return '#cbff5e'; // Lime
+          case 'visit':     return '#fde047'; // Yellow
+          case 'done':      return '#10b981'; // Emerald (Found)
+          case 'not_found': return '#ef4444'; // Red (Not Found)
+          default:          return '#cbff5e';
         }
       }
       if (sortedIndices.has(index)) return '#818cf8';
       return isDark ? '#4f5b8a' : '#94a3b8';
     };
 
-    const isActive = (col: string) => col === '#cbff5e' || col === '#fb923c';
+    const isActive = (col: string) => 
+      col === '#cbff5e' || col === '#fb923c' || col === '#fde047' || col === '#10b981' || col === '#ef4444';
 
     const getLabelColor = (barColor: string): string => {
       if (barColor === '#cbff5e') return '#111827';

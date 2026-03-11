@@ -48,7 +48,6 @@ export function HashTableViz({ currentStepData, tableSize }: HashTableVizProps) 
     const stepType = currentStepData?.type;
     const activeIndices = currentStepData?.indices || [];
     const pendingKey = currentStepData?.values?.pendingKey;
-    const pendingValue = currentStepData?.values?.pendingValue;
     const hashVal = currentStepData?.values?.hash;
 
     // ─── DEFS ──────────────────────────────────────────────────────────
@@ -70,7 +69,6 @@ export function HashTableViz({ currentStepData, tableSize }: HashTableVizProps) 
 
     const arrowDefault = isDark ? '#475569' : '#94a3b8';
     const arrowActive  = '#cbff5e';
-    const arrowDelete  = '#fb923c';
     setupMarker('ht-arrow', arrowDefault);
     setupMarker('ht-arrow-active', arrowActive);
     
@@ -98,7 +96,7 @@ export function HashTableViz({ currentStepData, tableSize }: HashTableVizProps) 
 
     if (defs.select('#ht-shadow').empty()) {
       const sh = defs.append('filter').attr('id', 'ht-shadow').attr('x', '-20%').attr('y', '-20%').attr('width', '140%').attr('height', '140%');
-      sh.append('feDropShadow').attr('dx', 0).attr('ly', 4).attr('stdDeviation', 6).attr('flood-color', 'rgba(0,0,0,0.4)');
+      sh.append('feDropShadow').attr('dx', 0).attr('dy', 4).attr('stdDeviation', 6).attr('flood-color', 'rgba(0,0,0,0.4)');
     }
 
     // ─── LAYERS ────────────────────────────────────────────────────────
@@ -205,7 +203,7 @@ export function HashTableViz({ currentStepData, tableSize }: HashTableVizProps) 
     // Glassy highlight
     entryEnter.append('rect').attr('class', 'ht-entry-highlight')
       .attr('width', entryW).attr('height', entryH / 2).attr('rx', 6)
-      .attr('fill', 'linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%)');
+      .attr('fill', 'rgba(255,255,255,0.12)');
 
     // Pointer Box (NEXT section)
     entryEnter.append('rect').attr('class', 'ht-entry-pointer')
@@ -220,10 +218,16 @@ export function HashTableViz({ currentStepData, tableSize }: HashTableVizProps) 
       
     // Text: Key (Truncate if mobile and long)
     entryEnter.append('text').attr('class', 'ht-entry-key')
-      .attr('x', entryW / 2).attr('y', entryH / 2).attr('dy', '0.35em').attr('text-anchor', 'middle')
-      .attr('font-family', 'monospace').attr('font-weight', 'bold').attr('font-size', isMobile ? '10px' : '14px')
+      .attr('x', entryW / 2).attr('y', entryH / 2 - (isMobile ? 3 : 5)).attr('dy', '0.35em').attr('text-anchor', 'middle')
+      .attr('font-family', 'monospace').attr('font-weight', 'bold').attr('font-size', isMobile ? '9px' : '12px')
       .attr('fill', '#fff')
       .text(d => isMobile && d.key.length > 5 ? d.key.substring(0, 4) + '..' : d.key);
+
+    entryEnter.append('text').attr('class', 'ht-entry-value')
+      .attr('x', entryW / 2).attr('y', entryH / 2 + (isMobile ? 7 : 8)).attr('dy', '0.35em').attr('text-anchor', 'middle')
+      .attr('font-family', 'monospace').attr('font-weight', '600').attr('font-size', isMobile ? '8px' : '10px')
+      .attr('fill', 'rgba(255,255,255,0.86)')
+      .text(d => isMobile && d.val.length > 6 ? d.val.substring(0, 5) + '..' : d.val);
 
     const entryMerge = entryEnter.merge(entries);
     entryMerge.transition().duration(400).ease(d3.easeBackOut.overshoot(1.2))
@@ -241,6 +245,9 @@ export function HashTableViz({ currentStepData, tableSize }: HashTableVizProps) 
       
     entryMerge.select('.ht-entry-key')
       .attr('fill', d => (d.active && (stepType === 'insert' || stepType === 'visit')) ? '#111827' : '#fff');
+
+    entryMerge.select('.ht-entry-value')
+      .attr('fill', d => (d.active && (stepType === 'insert' || stepType === 'visit')) ? '#1f2937' : 'rgba(255,255,255,0.86)');
 
     entries.exit()
       .transition().duration(300).attr('transform', (d: any) => `translate(${d.x}, ${d.y + 20})`).style('opacity', 0)

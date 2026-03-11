@@ -84,7 +84,7 @@ export function generateBinarySearchSteps(arr: number[], target: number): Algori
 
   steps.push({
     id: steps.length,
-    type: 'done',
+    type: 'not_found',
     nodeIds: [],
     edgeIds: [],
     values: { array: [...currentArray] },

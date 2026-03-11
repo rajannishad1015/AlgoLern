@@ -1,149 +1,205 @@
 import { AlgorithmStep } from '@/lib/types/algorithm';
 
-// Simple hash function
-function hash(key: string, size: number): number {
-  let hashVal = 0;
-  for (let i = 0; i < key.length; i++) {
-    hashVal = (hashVal + key.charCodeAt(i)) % size;
+export type HashEntry = { key: string; value: string };
+export type HashTableState = HashEntry[][];
+
+export const HASH_TABLE_SIZE = 7;
+
+export function hashFunction(key: string, size: number = HASH_TABLE_SIZE): number {
+  let total = 0;
+  for (let index = 0; index < key.length; index += 1) {
+    total += key.charCodeAt(index);
   }
-  return hashVal;
+  return total % size;
 }
 
-export type HashTableState = { key: string; value: string }[][];
+export function cloneHashTable(table: HashTableState): HashTableState {
+  return table.map((bucket) => bucket.map((entry) => ({ ...entry })));
+}
 
-export function generateHashTableSteps(
-  size: number,
-  operations: { type: 'insert' | 'search' | 'delete'; key: string; value?: string }[]
-): AlgorithmStep[] {
+export function createInitialHashTableState(): HashTableState {
+  const table = Array.from({ length: HASH_TABLE_SIZE }, () => [] as HashEntry[]);
+  table[2] = [{ key: 'Alice', value: '25' }, { key: 'Bob', value: '30' }];
+  table[0] = [{ key: 'Caleb', value: '22' }];
+  return table;
+}
+
+export function createEmptyHashTableState(): HashTableState {
+  return Array.from({ length: HASH_TABLE_SIZE }, () => [] as HashEntry[]);
+}
+
+export function generateSingleHashTableSteps(
+  currentTable: HashTableState,
+  op:
+    | { type: 'insert'; key: string; value: string }
+    | { type: 'search'; key: string }
+    | { type: 'delete'; key: string },
+  tableSize: number = HASH_TABLE_SIZE
+): { steps: AlgorithmStep[]; nextTable: HashTableState } {
+  const table = cloneHashTable(currentTable);
   const steps: AlgorithmStep[] = [];
-  const table: HashTableState = Array.from({ length: size }, () => []);
+  const targetKey = op.key.trim();
+  const hashIndex = hashFunction(targetKey, tableSize);
 
-  const snapshot = (): HashTableState => table.map(bucket => [...bucket.map(e => ({ ...e }))]);
-
-  steps.push({
-    id: steps.length,
-    type: 'highlight',
-    indices: [],
-    values: { table: snapshot(), size },
-    description: `Hash Table initialized with ${size} buckets. We use chaining to handle collisions.`
+  const snapshot = (extraValues?: Record<string, unknown>) => ({
+    table: cloneHashTable(table),
+    hash: hashIndex,
+    pendingKey: targetKey,
+    ...(extraValues ?? {}),
   });
 
-  for (const op of operations) {
-    const bucketIndex = hash(op.key, size);
+  const visitChain = (bucketIndex: number, messagePrefix: string): number => {
+    for (let chainIndex = 0; chainIndex < table[bucketIndex].length; chainIndex += 1) {
+      const node = table[bucketIndex][chainIndex];
+      steps.push({
+        id: steps.length,
+        type: 'visit',
+        indices: [bucketIndex],
+        values: snapshot({ currentChainIndex: chainIndex }),
+        description: `${messagePrefix} Checking node [${node.key}: ${node.value}].`,
+      });
+
+      if (node.key === targetKey) {
+        return chainIndex;
+      }
+    }
+
+    return -1;
+  };
+
+  if (op.type === 'insert') {
+    const targetValue = op.value.trim();
 
     steps.push({
-      id: steps.length,
+      id: 0,
       type: 'highlight',
-      indices: [bucketIndex],
-      values: { table: snapshot(), size },
-      description: `Computing hash for key "${op.key}": hash("${op.key}") = ${bucketIndex}. Targeting bucket ${bucketIndex}.`
+      indices: [],
+      values: snapshot({ pendingValue: targetValue }),
+      description: `Insert [${targetKey}: ${targetValue}] requested. Calculating hash index...`,
+    });
+    steps.push({
+      id: 1,
+      type: 'highlight',
+      indices: [hashIndex],
+      values: snapshot({ pendingValue: targetValue }),
+      description: `hash("${targetKey}") % ${tableSize} = [${hashIndex}]. Moving to bucket [${hashIndex}].`,
     });
 
-    if (op.type === 'insert') {
-      const existingIdx = table[bucketIndex].findIndex(e => e.key === op.key);
+    const existingIndex = visitChain(hashIndex, `Collision chain in bucket [${hashIndex}].`);
 
-      if (existingIdx >= 0) {
-        steps.push({
-          id: steps.length,
-          type: 'compare',
-          indices: [bucketIndex],
-          values: { table: snapshot(), size },
-          description: `Key "${op.key}" already exists in bucket ${bucketIndex}. Updating value to "${op.value}".`
-        });
-        table[bucketIndex][existingIdx].value = op.value!;
-      } else {
-        if (table[bucketIndex].length > 0) {
-          steps.push({
-            id: steps.length,
-            type: 'compare',
-            indices: [bucketIndex],
-            values: { table: snapshot(), size },
-            description: `Collision detected at bucket ${bucketIndex}! Using chaining — appending to the existing chain.`
-          });
-        }
-        table[bucketIndex].push({ key: op.key, value: op.value! });
-      }
-
+    if (existingIndex >= 0) {
+      table[hashIndex][existingIndex].value = targetValue;
       steps.push({
         id: steps.length,
         type: 'insert',
-        indices: [bucketIndex],
-        values: { table: snapshot(), size },
-        description: `Inserted key="${op.key}", value="${op.value}" into bucket ${bucketIndex}.`
+        indices: [hashIndex],
+        values: snapshot({ currentChainIndex: existingIndex, pendingValue: targetValue }),
+        description: `Key already exists. Updated [${targetKey}] to new value [${targetValue}].`,
       });
-    }
-
-    if (op.type === 'search') {
-      const chain = table[bucketIndex];
-      let found = false;
-      for (let i = 0; i < chain.length; i++) {
-        steps.push({
-          id: steps.length,
-          type: 'compare',
-          indices: [bucketIndex],
-          values: { table: snapshot(), size, searchKey: op.key, chainIndex: i },
-          description: `Scanning bucket ${bucketIndex} chain: checking entry "${chain[i].key}"...`
-        });
-        if (chain[i].key === op.key) {
-          steps.push({
-            id: steps.length,
-            type: 'highlight',
-            indices: [bucketIndex],
-            values: { table: snapshot(), size, foundValue: chain[i].value },
-            description: `Found! Key="${op.key}" → Value="${chain[i].value}" at bucket ${bucketIndex}.`
-          });
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        steps.push({
-          id: steps.length,
-          type: 'highlight',
-          indices: [bucketIndex],
-          values: { table: snapshot(), size },
-          description: `Key "${op.key}" not found in bucket ${bucketIndex}.`
-        });
-      }
-    }
-
-    if (op.type === 'delete') {
-      const idx = table[bucketIndex].findIndex(e => e.key === op.key);
-      if (idx >= 0) {
-        steps.push({
-          id: steps.length,
-          type: 'delete',
-          indices: [bucketIndex],
-          values: { table: snapshot(), size },
-          description: `Found key "${op.key}" at bucket ${bucketIndex}. Removing it.`
-        });
-        table[bucketIndex].splice(idx, 1);
-        steps.push({
-          id: steps.length,
-          type: 'update',
-          indices: [bucketIndex],
-          values: { table: snapshot(), size },
-          description: `Key "${op.key}" deleted from bucket ${bucketIndex}.`
-        });
-      } else {
-        steps.push({
-          id: steps.length,
-          type: 'highlight',
-          indices: [bucketIndex],
-          values: { table: snapshot(), size },
-          description: `Key "${op.key}" not found in table. Nothing to delete.`
-        });
-      }
+    } else {
+      steps.push({
+        id: steps.length,
+        type: 'highlight',
+        indices: [hashIndex],
+        values: snapshot({ pendingValue: targetValue }),
+        description:
+          table[hashIndex].length === 0
+            ? `Bucket [${hashIndex}] is empty. Creating first node [${targetKey}: ${targetValue}].`
+            : `Collision handled by chaining. Appending [${targetKey}: ${targetValue}] to bucket [${hashIndex}].`,
+      });
+      table[hashIndex].push({ key: targetKey, value: targetValue });
+      steps.push({
+        id: steps.length,
+        type: 'insert',
+        indices: [hashIndex],
+        values: snapshot({ currentChainIndex: table[hashIndex].length - 1, pendingValue: targetValue }),
+        description: `Insert complete. [${targetKey}: ${targetValue}] stored in bucket [${hashIndex}].`,
+      });
     }
   }
 
-  steps.push({
-    id: steps.length,
-    type: 'done',
-    indices: [],
-    values: { table: snapshot(), size },
-    description: 'All Hash Table operations complete.'
-  });
+  if (op.type === 'search') {
+    steps.push({
+      id: 0,
+      type: 'highlight',
+      indices: [],
+      values: snapshot(),
+      description: `Search for key [${targetKey}] started. Calculating hash index...`,
+    });
+    steps.push({
+      id: 1,
+      type: 'highlight',
+      indices: [hashIndex],
+      values: snapshot(),
+      description: `hash("${targetKey}") % ${tableSize} = [${hashIndex}]. Searching bucket [${hashIndex}].`,
+    });
 
-  return steps;
+    const foundIndex = visitChain(hashIndex, `Walking chain in bucket [${hashIndex}].`);
+
+    if (foundIndex >= 0) {
+      steps.push({
+        id: steps.length,
+        type: 'done',
+        indices: [hashIndex],
+        values: snapshot({ currentChainIndex: foundIndex }),
+        description: `Search success. Value for [${targetKey}] is [${table[hashIndex][foundIndex].value}].`,
+      });
+    } else {
+      steps.push({
+        id: steps.length,
+        type: 'done',
+        indices: [hashIndex],
+        values: snapshot(),
+        description: `Search complete. Key [${targetKey}] was not found in bucket [${hashIndex}].`,
+      });
+    }
+  }
+
+  if (op.type === 'delete') {
+    steps.push({
+      id: 0,
+      type: 'highlight',
+      indices: [],
+      values: snapshot(),
+      description: `Delete key [${targetKey}] requested. Calculating hash index...`,
+    });
+    steps.push({
+      id: 1,
+      type: 'highlight',
+      indices: [hashIndex],
+      values: snapshot(),
+      description: `hash("${targetKey}") % ${tableSize} = [${hashIndex}]. Inspecting bucket [${hashIndex}].`,
+    });
+
+    const foundIndex = visitChain(hashIndex, `Walking chain in bucket [${hashIndex}].`);
+
+    if (foundIndex >= 0) {
+      const removed = table[hashIndex][foundIndex];
+      steps.push({
+        id: steps.length,
+        type: 'delete',
+        indices: [hashIndex],
+        values: snapshot({ currentChainIndex: foundIndex }),
+        description: `Match found. Removing [${removed.key}: ${removed.value}] from bucket [${hashIndex}].`,
+      });
+      table[hashIndex].splice(foundIndex, 1);
+      steps.push({
+        id: steps.length,
+        type: 'done',
+        indices: [hashIndex],
+        values: snapshot(),
+        description: `Delete complete. Key [${targetKey}] removed successfully.`,
+      });
+    } else {
+      steps.push({
+        id: steps.length,
+        type: 'done',
+        indices: [hashIndex],
+        values: snapshot(),
+        description: `Delete skipped. Key [${targetKey}] does not exist.`,
+      });
+    }
+  }
+
+  return { steps, nextTable: table };
 }

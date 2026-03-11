@@ -48,11 +48,11 @@ export function generateJumpSearchSteps(arr: number[], target: number): Algorith
     if (prev >= n) {
       steps.push({
         id: steps.length,
-        type: 'done',
+        type: 'not_found',
         nodeIds: [],
         edgeIds: [],
         values: { array: [...arr] },
-        description: `Jumped past array bounds. Target ${target} not found.`,
+        description: `Target ${target} not found.`,
         auxiliaryState: { stateInfo: getState(step, prev) }
       });
       return steps;
