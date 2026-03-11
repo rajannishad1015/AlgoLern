@@ -14,7 +14,10 @@ function cloneTree(node: TreeNode | null): TreeNode | null {
 
 export type BSTOperation = 
   | { type: 'insert', value: number }
-  | { type: 'search', value: number };
+  | { type: 'search', value: number }
+  | { type: 'inorder' }
+  | { type: 'preorder' }
+  | { type: 'postorder' };
 
 export function generateBSTSteps(operations: BSTOperation[]): AlgorithmStep[] {
   const steps: AlgorithmStep[] = [];
@@ -186,6 +189,113 @@ export function generateBSTSteps(operations: BSTOperation[]): AlgorithmStep[] {
           description: `Reached a leaf. Value ${val} not found in the tree.`,
         });
       }
+    } else if (op.type === 'inorder' || op.type === 'preorder' || op.type === 'postorder') {
+      const traversalType = op.type;
+      const result: number[] = [];
+      const traversalName = traversalType.charAt(0).toUpperCase() + traversalType.slice(1);
+
+      if (!root) {
+        steps.push({
+          id: steps.length,
+          type: 'highlight',
+          nodeIds: [],
+          values: { tree: cloneTree(root) },
+          description: `Tree is empty. Cannot perform ${traversalName} traversal.`,
+        });
+        return;
+      }
+
+      steps.push({
+        id: steps.length,
+        type: 'highlight',
+        nodeIds: [],
+        values: { tree: cloneTree(root) },
+        description: `Starting ${traversalName} Traversal.`,
+      });
+
+      const traverse = (node: TreeNode | null, parentId: string | null = null, dir: 'left' | 'right' | null = null) => {
+        if (!node) return;
+
+        // Path coming into this node
+        if (parentId && dir) {
+           steps.push({
+             id: steps.length,
+             type: 'path',
+             nodeIds: [parentId],
+             edgeIds: [`${parentId}-${dir}`],
+             values: { tree: cloneTree(root) },
+             description: `Traversing to ${dir} child of ${parentId === root?.id ? 'Root' : 'Parent'}...`,
+           });
+        }
+
+        // Action: Arrival at Node
+        steps.push({
+          id: steps.length,
+          type: 'visit',
+          nodeIds: [node.id],
+          values: { tree: cloneTree(root) },
+          description: `Visiting node ${node.value}.`,
+        });
+
+        if (traversalType === 'preorder') {
+          result.push(node.value);
+          steps.push({
+             id: steps.length,
+             type: 'done',
+             nodeIds: [node.id],
+             values: { tree: cloneTree(root) },
+             description: `[PRE-ORDER] Processed Node: ${node.value} <br/><br/> <span class="text-indigo-400 font-mono text-xs font-bold bg-indigo-500/10 px-2 py-1 rounded">Result: [${result.join(', ')}]</span>`,
+          });
+        }
+
+        traverse(node.left, node.id, 'left');
+
+        if (traversalType === 'inorder') {
+          result.push(node.value);
+          steps.push({
+             id: steps.length,
+             type: 'done',
+             nodeIds: [node.id],
+             values: { tree: cloneTree(root) },
+             description: `[IN-ORDER] Processed Node: ${node.value} <br/><br/> <span class="text-[#cbff5e] font-mono text-xs font-bold bg-[#cbff5e]/10 px-2 py-1 rounded">Result: [${result.join(', ')}]</span>`,
+          });
+        }
+
+        traverse(node.right, node.id, 'right');
+
+        if (traversalType === 'postorder') {
+          result.push(node.value);
+          steps.push({
+             id: steps.length,
+             type: 'done',
+             nodeIds: [node.id],
+             values: { tree: cloneTree(root) },
+             description: `[POST-ORDER] Processed Node: ${node.value} <br/><br/> <span class="text-emerald-400 font-mono text-xs font-bold bg-emerald-500/10 px-2 py-1 rounded">Result: [${result.join(', ')}]</span>`,
+          });
+        }
+        
+        // Path returning to parent (Visual backtracking)
+        if (parentId && dir) {
+           steps.push({
+             id: steps.length,
+             type: 'path',
+             nodeIds: [node.id],
+             edgeIds: [`${parentId}-${dir}`],
+             values: { tree: cloneTree(root) },
+             description: `Backtracking to parent from node ${node.value}...`,
+           });
+        }
+      };
+
+      traverse(root);
+
+      steps.push({
+        id: steps.length,
+        type: 'highlight',
+        nodeIds: [],
+        values: { tree: cloneTree(root) },
+        description: `✅ ${traversalName} Traversal Complete! <br/><br/> Final Output: <span class="text-white font-mono font-bold bg-white/10 px-2 py-1 rounded ml-1">[${result.join(', ')}]</span>`,
+      });
     }
   });
 

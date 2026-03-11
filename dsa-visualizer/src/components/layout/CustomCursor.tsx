@@ -8,8 +8,19 @@ export function CustomCursor() {
 
   useEffect(() => {
     if (pathname !== "/") return;
+    
+    // Disable custom cursor on mobile devices
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      const cursor = document.getElementById('cursor');
+      if (cursor) cursor.style.display = 'none';
+      return;
+    }
+
     const cursor = document.getElementById('cursor');
     if (!cursor) return;
+
+    // Ensure it's visible on desktop if it was previously hidden
+    cursor.style.display = 'block';
 
     let cursorX = window.innerWidth / 2;
     let cursorY = window.innerHeight / 2;
@@ -60,5 +71,5 @@ export function CustomCursor() {
 
   if (pathname !== "/") return null;
 
-  return <div id="cursor" />;
+  return <div id="cursor" className="hidden md:block" />;
 }

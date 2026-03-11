@@ -217,8 +217,8 @@
 .hero-title .highlight::after {
   content: '';
   position: absolute;
-  left: 0; bottom: 12px;
-  width: 100%; height: 18px;
+  left: 0; bottom: 0.12em;
+  width: 100%; height: 0.25em;
   background: var(--lime);
   z-index: -1;
   transform: skewX(-3deg);
@@ -678,14 +678,32 @@
 }
 
 @media (max-width: 600px) {
-  .hero-content { padding: 40px 0 40px; }
-  .hero-title { font-size: clamp(3rem, 13vw, 4rem); line-height: 0.95; }
-  .hero-desc { font-size: 0.75rem; margin-bottom: 30px; }
+  .hero { 
+    min-height: auto; 
+    padding-top: 58px; 
+    padding-bottom: 30px; 
+  }
+  .hero-content { padding: 30px 0 20px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .hero-eyebrow { justify-content: center; text-align: center; flex-wrap: wrap; margin-bottom: 16px; }
+  .hero-title { font-size: clamp(2.5rem, 11vw, 4rem); line-height: 0.95; margin-bottom: 24px; }
+  .hero-desc { font-size: 0.82rem; margin-bottom: 24px; border-left: none; padding-left: 0; text-align: center; }
+  .hero-actions { justify-content: center; }
+  .hero-watermark { right: 50%; transform: translate(50%, -50%); font-size: 50vw; }
   
-  .stats-row { grid-template-columns: 1fr; }
-  .stat-item { padding: 24px 20px; border-right: none; border-bottom: 1.5px solid var(--ink); display: flex; align-items: center; justify-content: space-between; }
-  .stat-item:last-child { border-bottom: none; }
-  .stat-label { margin-top: 0; text-align: right; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .stat-item { 
+    padding: 24px 16px; 
+    border-right: 1.5px solid var(--ink); 
+    border-bottom: none; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .stat-item:nth-child(even) { border-right: none; }
+  .stat-item:nth-child(1), .stat-item:nth-child(2) { border-bottom: 1.5px solid var(--ink); }
+  .stat-label { margin-top: 8px; text-align: center; font-size: 0.65rem; }
+  .stat-num { font-size: 2.8rem; }
   
   .features-section, .viz-section { padding: 60px 0; }
   .bento { grid-template-columns: 1fr; }
@@ -694,7 +712,7 @@
   .fcard-title { font-size: 1.6rem; }
   
   .viz-copy p { margin-bottom: 24px; }
-  .vf-item { padding: 12px; gap: 12px; }
+  .vf-item { padding: 16px; gap: 16px; }
   
   .footer-inner { flex-direction: column; align-items: flex-start; gap: 16px; }
   .footer-links { flex-wrap: wrap; gap: 16px; }
