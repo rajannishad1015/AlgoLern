@@ -46,21 +46,24 @@ const sections = [
   {
     id: "searching", label: "Searching", icon: Search,
     links: [
-      { label: "Linear Search",  href: "/searching/linear" },
-      { label: "Binary Search",  href: "/searching/binary" },
-      { label: "Jump Search",    href: "/searching/jump" },
+      { label: "Linear Search",        href: "/searching/linear" },
+      { label: "Binary Search",        href: "/searching/binary" },
+      { label: "Jump Search",          href: "/searching/jump" },
+      { label: "Exponential Search",   href: "/searching/exponential" },
+      { label: "Interpolation Search", href: "/searching/interpolation" },
     ],
   },
   {
     id: "data-structures", label: "Data Structures", icon: Shapes,
     links: [
-      { label: "Stack",               href: "/data-structures/stack" },
-      { label: "Queue",               href: "/data-structures/queue" },
-      { label: "Singly Linked List",  href: "/data-structures/linked-list" },
-      { label: "Doubly Linked List",  href: "/data-structures/doubly-linked-list" },
-      { label: "Hash Table",          href: "/data-structures/hash-table" },
-      { label: "Priority Queue",      href: "/data-structures/priority-queue" },
-      { label: "Deque",               href: "/data-structures/deque" },
+      { label: "Stack",                href: "/data-structures/stack" },
+      { label: "Queue",                href: "/data-structures/queue" },
+      { label: "Singly Linked List",   href: "/data-structures/linked-list" },
+      { label: "Doubly Linked List",   href: "/data-structures/doubly-linked-list" },
+      { label: "Circular Linked List", href: "/data-structures/circular-linked-list" },
+      { label: "Hash Table",           href: "/data-structures/hash-table" },
+      { label: "Priority Queue",       href: "/data-structures/priority-queue" },
+      { label: "Deque",                href: "/data-structures/deque" },
     ],
   },
   {
@@ -88,8 +91,10 @@ const sections = [
   {
     id: "advanced", label: "Advanced", icon: Cpu,
     links: [
-      { label: "DP — Fibonacci", href: "/advanced/fibonacci" },
-      { label: "N-Queens",       href: "/advanced/nqueens" },
+      { label: "DP — Fibonacci",           href: "/advanced/fibonacci" },
+      { label: "N-Queens",                  href: "/advanced/nqueens" },
+      { label: "Greedy Activity Selection", href: "/advanced/greedy" },
+      { label: "Sudoku Backtracking",       href: "/advanced/sudoku" },
     ],
   },
 ];

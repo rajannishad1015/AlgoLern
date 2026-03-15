@@ -10,6 +10,31 @@ interface GraphVizProps {
   height?: number;
 }
 
+// ─── Theme-safe color palette (no CSS variables) ──────────────────────────
+const C = {
+  bg:         '#0d0f1c',       // canvas bg
+  edgeDefault:'#334155',       // slate-700
+  edgeMST:    '#10b981',       // emerald-500 — MST edges
+  edgeActive: '#6366f1',       // indigo-500 — currently examined edge
+  edgeUpdate: '#f59e0b',       // amber-500 — being relaxed / updated
+  edgeDone:   '#10b981',       // emerald-500 — shortest path / accepted
+  nodeDefault:'#1e2035',       // dark slate
+  nodeHighlight:'#6366f1',     // indigo
+  nodeVisit:  '#f59e0b',       // amber — currently processing
+  nodeInsert: '#8b5cf6',       // violet — just added to queue/mst
+  nodeUpdate: '#f59e0b',       // amber — distance updated
+  nodeDone:   '#10b981',       // emerald — finalized
+  nodePath:   '#10b981',       // emerald
+  nodeStroke: '#475569',       // slate-600
+  nodeActiveStroke: '#818cf8', // indigo-400 glow
+  weightBg:   '#1e2035',
+  weightText: '#94a3b8',       // slate-400
+  labelActive:'#ffffff',
+  labelDefault:'#e2e8f0',      // slate-200
+  arrowDefault:'#475569',
+  arrowActive:'#6366f1',
+};
+
 export function GraphViz({ currentStepData }: GraphVizProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -17,177 +42,205 @@ export function GraphViz({ currentStepData }: GraphVizProps) {
   useEffect(() => {
     if (!containerRef.current || !svgRef.current) return;
 
-    let width = containerRef.current.clientWidth;
+    let width  = containerRef.current.clientWidth;
     let height = containerRef.current.clientHeight || 500;
 
     const svg = d3.select(svgRef.current);
-    
+
     const rawNodes: GraphNode[] = currentStepData?.values?.nodes || [];
     const rawEdges: GraphEdge[] = currentStepData?.values?.edges || [];
 
+    const activeEdgeIds = currentStepData?.edgeIds ?? [];
+    const activeNodeIds = currentStepData?.nodeIds ?? [];
+    const stepType      = currentStepData?.type ?? 'highlight';
+
     const drawChart = () => {
-      svg.selectAll("*").remove();
+      svg.selectAll('*').remove();
+      svg.attr('width', width).attr('height', height);
 
-      // Configure SVG
-      svg.attr("width", width).attr("height", height);
+      // ── Background ────────────────────────────────────────────────────
+      svg.append('rect')
+        .attr('width', width).attr('height', height)
+        .attr('fill', C.bg);
 
-      // Define Marker for Directed Graphs (if used later)
-      svg.append('defs').append('marker')
-        .attr('id', 'graph-arrow')
-        .attr('viewBox', '0 -5 10 10')
-        .attr('refX', 22) // Offset for circle radius (20) + stroke
-        .attr('refY', 0)
-        .attr('markerWidth', 6)
-        .attr('markerHeight', 6)
-        .attr('orient', 'auto')
-        .append('path')
-        .attr('d', 'M0,-5L10,0L0,5')
-        .attr('fill', 'var(--color-text-secondary)');
-
-      // G elements for layering: edges below nodes
-      const edgesG = svg.append("g").attr("class", "edges");
-      const nodesG = svg.append("g").attr("class", "nodes");
-      const weightsG = svg.append("g").attr("class", "weights");
-
-      // We assume nodes already have relatively scaled static x/y percentages or coordinates if we want perfect identical layouts.
-      // E.g. x: 50 means 50%. Let's map percent to actual width/height.
-      // If no static coordinates, fall back to a quick static circle or random scatter which might look messy, so rawNodes SHOULD provide x/y 0-100 values.
-      const mapX = (x?: number) => x !== undefined ? (x / 100) * width : 0;
-      const mapY = (y?: number) => y !== undefined ? (y / 100) * height : 0;
-
-      // Draw Edges
-      const edgesData = edgesG.selectAll("line")
-        .data(rawEdges, (d: any) => d.id);
-
-      edgesData.enter()
-        .append("line")
-        .attr("stroke", (d) => {
-             if (currentStepData?.edgeIds?.includes(d.id)) {
-                 if (currentStepData.type === 'update') return 'var(--color-viz-path)'; // Dijkstra update
-                 return 'var(--color-accent-primary)';
-             }
-             if (currentStepData?.type === 'done' && currentStepData.edgeIds?.includes(d.id)) {
-                 // The final path
-                 return 'var(--color-viz-path)';
-             }
-             return 'var(--color-border)';
-        })
-        .attr("stroke-width", (d) => {
-             return currentStepData?.edgeIds?.includes(d.id) ? 4 : 2;
-        })
-        .attr("x1", d => {
-             const n = rawNodes.find(n => n.id === d.source);
-             return mapX(n?.x);
-        })
-        .attr("y1", d => {
-             const n = rawNodes.find(n => n.id === d.source);
-             return mapY(n?.y);
-        })
-        .attr("x2", d => {
-             const n = rawNodes.find(n => n.id === d.target);
-             return mapX(n?.x);
-        })
-        .attr("y2", d => {
-             const n = rawNodes.find(n => n.id === d.target);
-             return mapY(n?.y);
-        })
-        .attr("marker-end", d => d.isDirected ? "url(#graph-arrow)" : "");
-        
-      // Draw edge weights
-      const hasWeights = rawEdges.some(e => e.weight !== undefined);
-      if (hasWeights) {
-          const weightsData = weightsG.selectAll("g")
-             .data(rawEdges, (d: any) => d.id);
-             
-          const wEnter = weightsData.enter()
-             .append("g")
-             .attr("transform", d => {
-                 const src = rawNodes.find(n => n.id === d.source);
-                 const tgt = rawNodes.find(n => n.id === d.target);
-                 const x = (mapX(src?.x) + mapX(tgt?.x)) / 2;
-                 const y = (mapY(src?.y) + mapY(tgt?.y)) / 2;
-                 return `translate(${x}, ${y - 10})`;
-             });
-             
-          // Add background to weight text for readability over edges
-          wEnter.append("rect")
-            .attr("width", 24)
-            .attr("height", 16)
-            .attr("x", -12)
-            .attr("y", -8)
-            .attr("rx", 4)
-            .attr("fill", "var(--color-bg-card)")
-            .attr("stroke", "var(--color-border)")
-            .attr("stroke-width", 1);
-            
-          wEnter.append("text")
-            .attr("text-anchor", "middle")
-            .attr("dy", "0.35em")
-            .attr("fill", "var(--color-text-secondary)")
-            .attr("font-size", "12px")
-            .attr("font-family", "var(--font-geist-mono)")
-            .attr("font-weight", "bold")
-            .text(d => d.weight || "");
+      // ── Grid dots (subtle) ───────────────────────────────────────────
+      const dotSpacing = 40;
+      for (let gx = dotSpacing; gx < width; gx += dotSpacing) {
+        for (let gy = dotSpacing; gy < height; gy += dotSpacing) {
+          svg.append('circle').attr('cx', gx).attr('cy', gy).attr('r', 1).attr('fill', '#1e2a3a');
+        }
       }
 
-      // Draw Nodes
-      const nodesData = nodesG.selectAll("g")
-        .data(rawNodes, (d: any) => d.id);
+      const defs = svg.append('defs');
 
-      const nodesEnter = nodesData.enter()
-        .append("g")
-        .attr("transform", d => `translate(${mapX(d.x)}, ${mapY(d.y)})`);
+      // ── Arrow markers ─────────────────────────────────────────────────
+      ['default', 'active', 'update', 'done'].forEach(kind => {
+        const color = kind === 'active' ? C.arrowActive
+          : kind === 'update' ? C.edgeUpdate
+          : kind === 'done'   ? C.edgeDone
+          : C.arrowDefault;
 
-      nodesEnter.append("circle")
-        .attr("r", 20)
-        .attr("fill", d => {
-             if (currentStepData?.nodeIds?.includes(d.id)) {
-                 if (currentStepData.type === 'visit') return 'var(--color-viz-comparing)'; // Processing
-                 if (currentStepData.type === 'insert') return 'var(--color-accent-secondary)'; // Added to ds
-                 if (currentStepData.type === 'update') return 'var(--color-viz-path)'; // Distance updated
-                 if (currentStepData.type === 'done') return 'var(--color-viz-sorted)'; // Finished handling
-                 return 'var(--color-accent-primary)'; // Highlighting
-             }
-             // For Dijkstra, maybe styling based on unvisited set would be nice later.
-             return 'var(--color-bg-secondary)';
-        })
-        .attr("stroke", "var(--color-border)")
-        .attr("stroke-width", 2)
-        .transition()
-        .duration(300);
+        defs.append('marker')
+          .attr('id', `arrow-${kind}`)
+          .attr('viewBox', '0 -5 10 10')
+          .attr('refX', 26)
+          .attr('refY', 0)
+          .attr('markerWidth', 6)
+          .attr('markerHeight', 6)
+          .attr('orient', 'auto')
+          .append('path')
+          .attr('d', 'M0,-5L10,0L0,5')
+          .attr('fill', color);
+      });
 
-      nodesEnter.append("text")
-        .attr("dy", "0.35em")
-        .attr("text-anchor", "middle")
-        .attr("fill", d => currentStepData?.nodeIds?.includes(d.id) ? '#ffffff' : 'var(--color-text-primary)')
-        .attr("font-family", "var(--font-geist-mono)")
-        .attr("font-size", "14px")
-        .attr("font-weight", "bold")
-        .text(d => d.label);
+      // ── Glow filter ──────────────────────────────────────────────────
+      const glowFilter = defs.append('filter').attr('id', 'glow');
+      glowFilter.append('feGaussianBlur').attr('stdDeviation', '3').attr('result', 'coloredBlur');
+      const glowMerge = glowFilter.append('feMerge');
+      glowMerge.append('feMergeNode').attr('in', 'coloredBlur');
+      glowMerge.append('feMergeNode').attr('in', 'SourceGraphic');
 
+      const mapX = (x?: number) => x !== undefined ? (x / 100) * width  : width  / 2;
+      const mapY = (y?: number) => y !== undefined ? (y / 100) * height : height / 2;
+
+      // ── G layers ─────────────────────────────────────────────────────
+      const edgesG   = svg.append('g');
+      const weightsG = svg.append('g');
+      const nodesG   = svg.append('g');
+
+      // ── Edges ─────────────────────────────────────────────────────────
+      rawEdges.forEach(e => {
+        const src = rawNodes.find(n => n.id === e.source);
+        const tgt = rawNodes.find(n => n.id === e.target);
+        if (!src || !tgt) return;
+
+        const x1 = mapX(src.x), y1 = mapY(src.y);
+        const x2 = mapX(tgt.x), y2 = mapY(tgt.y);
+        const isActive = activeEdgeIds.includes(e.id);
+
+        let stroke = C.edgeDefault;
+        let strokeW = 2;
+        let markerKind = 'default';
+        let opacity = 1;
+        let useGlow = false;
+
+        if (isActive) {
+          if (stepType === 'update') { stroke = C.edgeUpdate;  markerKind = 'update'; strokeW = 3.5; useGlow = true; }
+          else if (stepType === 'path' || stepType === 'done') { stroke = C.edgeDone; markerKind = 'done'; strokeW = 3.5; useGlow = true; }
+          else { stroke = C.edgeActive; markerKind = 'active'; strokeW = 3; useGlow = true; }
+        } else {
+          opacity = 0.35;
+        }
+
+        edgesG.append('line')
+          .attr('x1', x1).attr('y1', y1)
+          .attr('x2', x2).attr('y2', y2)
+          .attr('stroke', stroke)
+          .attr('stroke-width', strokeW)
+          .attr('stroke-linecap', 'round')
+          .attr('stroke-opacity', opacity)
+          .attr('filter', useGlow ? 'url(#glow)' : null)
+          .attr('marker-end', e.isDirected ? `url(#arrow-${markerKind})` : null);
+      });
+
+      // ── Edge weights ──────────────────────────────────────────────────
+      const hasWeights = rawEdges.some(e => e.weight !== undefined);
+      if (hasWeights) {
+        rawEdges.forEach(e => {
+          if (e.weight === undefined) return;
+          const src = rawNodes.find(n => n.id === e.source);
+          const tgt = rawNodes.find(n => n.id === e.target);
+          if (!src || !tgt) return;
+
+          const cx = (mapX(src.x) + mapX(tgt.x)) / 2;
+          const cy = (mapY(src.y) + mapY(tgt.y)) / 2 - 10;
+          const isActive = activeEdgeIds.includes(e.id);
+
+          const wg = weightsG.append('g').attr('transform', `translate(${cx},${cy})`);
+          wg.append('rect')
+            .attr('width', 26).attr('height', 18)
+            .attr('x', -13).attr('y', -9).attr('rx', 5)
+            .attr('fill', isActive ? C.edgeActive : C.weightBg)
+            .attr('fill-opacity', isActive ? 0.9 : 0.85)
+            .attr('stroke', isActive ? C.edgeActive : '#334155')
+            .attr('stroke-width', 1.5);
+          wg.append('text')
+            .attr('text-anchor', 'middle').attr('dy', '0.35em')
+            .attr('fill', isActive ? '#fff' : C.weightText)
+            .attr('font-size', '11px').attr('font-weight', 'bold')
+            .attr('font-family', 'monospace')
+            .text(e.weight);
+        });
+      }
+
+      // ── Nodes ─────────────────────────────────────────────────────────
+      rawNodes.forEach(n => {
+        const cx = mapX(n.x), cy = mapY(n.y);
+        const isActive = activeNodeIds.includes(n.id);
+
+        let fill   = C.nodeDefault;
+        let stroke = C.nodeStroke;
+        let strokeW = 2;
+        let useGlow = false;
+
+        if (isActive) {
+          stroke  = C.nodeActiveStroke;
+          strokeW = 3;
+          useGlow = true;
+          if      (stepType === 'visit')     { fill = C.nodeVisit; }
+          else if (stepType === 'insert')    { fill = C.nodeInsert; }
+          else if (stepType === 'update')    { fill = C.nodeUpdate; }
+          else if (stepType === 'done')      { fill = C.nodeDone; }
+          else if (stepType === 'path')      { fill = C.nodePath; }
+          else if (stepType === 'compare')   { fill = '#e11d48'; stroke = '#fb7185'; } // rose
+          else                               { fill = C.nodeHighlight; }
+        }
+
+        const ng = nodesG.append('g').attr('transform', `translate(${cx},${cy})`);
+
+        // Outer glow ring for active nodes
+        if (isActive) {
+          ng.append('circle').attr('r', 28)
+            .attr('fill', fill).attr('fill-opacity', 0.15)
+            .attr('stroke', 'none');
+        }
+
+        // Node circle
+        ng.append('circle')
+          .attr('r', 22)
+          .attr('fill', fill)
+          .attr('stroke', stroke)
+          .attr('stroke-width', strokeW)
+          .attr('filter', useGlow ? 'url(#glow)' : null);
+
+        // Label
+        ng.append('text')
+          .attr('dy', '0.35em').attr('text-anchor', 'middle')
+          .attr('fill', isActive ? C.labelActive : C.labelDefault)
+          .attr('font-size', '14px').attr('font-weight', 'bold')
+          .attr('font-family', 'monospace')
+          .text(n.label);
+      });
     };
 
     drawChart();
 
-    const observer = new ResizeObserver((entries) => {
+    const observer = new ResizeObserver(entries => {
       for (const entry of entries) {
-        width = entry.contentRect.width;
+        width  = entry.contentRect.width;
         height = entry.contentRect.height;
         drawChart();
       }
     });
-
     observer.observe(containerRef.current);
-    
-    return () => {
-      observer.disconnect();
-    };
+    return () => observer.disconnect();
   }, [currentStepData]);
 
   return (
-    <div 
-      ref={containerRef} 
-      className="w-full h-full min-h-[500px] relative flex bg-bg-card rounded-lg border border-border overflow-hidden"
+    <div
+      ref={containerRef}
+      className="w-full h-full min-h-[380px] relative rounded-xl overflow-hidden border border-white/8"
+      style={{ background: C.bg }}
     >
       <svg ref={svgRef} className="w-full h-full block" />
     </div>

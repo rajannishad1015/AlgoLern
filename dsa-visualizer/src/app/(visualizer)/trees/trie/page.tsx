@@ -6,7 +6,7 @@ import { generateTrieSteps } from "@/lib/algorithms/trees/trie";
 import { ControlBar } from "@/components/visualizer/ControlBar";
 import { VisualizerFrame } from "@/components/visualizer/VisualizerFrame";
 import { TheoryCard } from "@/components/visualizer/TheoryCard";
-import { Plus, Search, Trash2, XCircle } from "lucide-react";
+import { Plus, Search, XCircle, Trash2, Shuffle } from "lucide-react";
 
 interface TrieNodeData {
   id: string;
@@ -15,172 +15,58 @@ interface TrieNodeData {
   isEnd: boolean;
   parent: string | null;
 }
-
 type TrieMap = Record<string, TrieNodeData>;
 
-const TRIE_THEORY = {
-  title: "Trie (Prefix Tree)",
-  description: "A Trie (pronounced 'try') is a tree-like data structure that proves highly efficient for solving problems related to strings. It stores characters at each node, where paths down the tree represent words or prefixes.",
-  descriptionHi: "ट्राई (Trie) एक ट्री-जैसा डेटा स्ट्रक्चर है जो स्ट्रिंग्स (शब्दों) से संबंधित समस्याओं को हल करने में बहुत कुशल है। इसमें प्रत्येक नोड पर अक्षर (characters) स्टोर होते हैं, और ट्री में नीचे जाने वाला रास्ता एक शब्द या प्रिफिक्स (prefix) बनाता है।",
-  complexities: [
-    { case: "Insertion", time: "O(L)", space: "O(L)", note: "L is the length of the string" },
-    { case: "Search (Word or Prefix)", time: "O(L)", space: "O(1)", note: "Fast prefix matching" },
-    { case: "Deletion", time: "O(L)", space: "O(1)", note: "If word exists" },
-  ],
-  useCases: [
-    "Autocomplete and type-ahead functions",
-    "Spell checkers and dictionary implementations",
-    "IP routing (Longest prefix matching)"
-  ],
-  useCasesHi: [
-    "सर्च इंजनों में ऑटोकंप्लीट (Autocomplete)",
-    "स्पेल चेकर्स (Spell Checkers) और डिक्शनरी",
-    "आईपी राउटिंग (IP Routing)"
-  ],
-  analogy: {
-    icon: "search",
-    title: "A Filing Cabinet for Letters",
-    titleHi: "अक्षरों के लिए फाइलिंग कैबिनेट",
-    desc: "Think of a massive filing cabinet. The top drawer has 26 folders (A-Z). You open 'C', inside are more folders for the 2nd letter. You open 'A', then 'T'. You just found 'CAT'. A Trie organizes letters exactly like these nested folders, so you only look at the exact letters of your word.",
-    descHi: "एक विशाल फाइलिंग कैबिनेट की कल्पना करें। पहले दराज में 26 फ़ोल्डर (A-Z) हैं। आप 'C' खोलते हैं, उसके अंदर दूसरे अक्षर के लिए और फ़ोल्डर हैं। फिर आप 'A' खोलते हैं, फिर 'T'। आपने 'CAT' खोज लिया। ट्राई बिल्कुल ऐसे ही काम करता है।"
-  },
-  pseudocode: `class TrieNode:
-    children = {}
-    isEndOfWord = false
-
-function insert(root, word):
-    currentNode = root
-    for character in word:
-        if character not in currentNode.children:
-            currentNode.children[character] = new TrieNode()
-        currentNode = currentNode.children[character]
-    currentNode.isEndOfWord = true
-
-function search(root, word):
-    currentNode = root
-    for character in word:
-        if character not in currentNode.children:
-            return false
-        currentNode = currentNode.children[character]
-    return currentNode.isEndOfWord`,
-  code: {
-    language: "java",
-    content: `class TrieNode {
-    TrieNode[] children = new TrieNode[26];
-    boolean isEndOfWord = false;
-}
-
-class Trie {
-    TrieNode root;
-
-    Trie() {
-        root = new TrieNode();
-    }
-
-    void insert(String word) {
-        TrieNode curr = root;
-        for (char c : word.toCharArray()) {
-            int index = c - 'a';
-            if (curr.children[index] == null) {
-                curr.children[index] = new TrieNode();
-            }
-            curr = curr.children[index];
-        }
-        curr.isEndOfWord = true;
-    }
-
-    boolean search(String word) {
-        TrieNode curr = root;
-        for (char c : word.toCharArray()) {
-            int index = c - 'a';
-            if (curr.children[index] == null) {
-                return false;
-            }
-            curr = curr.children[index];
-        }
-        return curr.isEndOfWord;
-    }
-}`
-  },
-  quiz: [
-    {
-      q: "If you insert 'car' and 'cat' into an empty Trie, how many nodes will be created (excluding the root)?",
-      options: [
-        "6",
-        "4",
-        "3",
-        "2"
-      ],
-      answer: 1
-    },
-    {
-      q: "What makes searching in a Trie potentially faster than a Binary Search Tree for strings?",
-      options: [
-        "A Trie uses less memory",
-        "A Trie balances itself automatically",
-        "Search time in a Trie is proportional to the word length (O(L)), not the number of words in the dictionary (O(log N))",
-        "Binary Search Trees cannot store strings"
-      ],
-      answer: 2
-    }
-  ]
-};
-
-function TrieNodeComponent({
-  id, nodes, activeIds, depth = 0
-}: {
-  id: string;
-  nodes: TrieMap;
-  activeIds: string[];
-  depth?: number;
-}) {
+// ─── D3-style recursive Trie renderer ────────────────────────────────────────
+function TrieNodeViz({
+  id, nodes, activeIds, depth = 0,
+}: { id: string; nodes: TrieMap; activeIds: string[]; depth?: number }) {
   const node = nodes[id];
   if (!node) return null;
-  const isActive = activeIds.includes(id);
-  const children = Object.values(node.children).filter(cid => nodes[cid]);
+  const isActive  = activeIds.includes(id);
+  const isEnd     = node.isEnd && depth > 0;
+  const childIds  = Object.values(node.children).filter(c => nodes[c]);
+
+  const ringColor = isActive && isEnd
+    ? "border-emerald-400 bg-emerald-500/30 shadow-[0_0_16px_rgba(52,211,153,0.5)]"
+    : isActive
+    ? "border-indigo-400 bg-indigo-500/30 shadow-[0_0_16px_rgba(99,102,241,0.5)]"
+    : isEnd
+    ? "border-emerald-400/60 bg-emerald-500/10 text-emerald-300"
+    : "border-[rgba(255,255,255,0.12)] bg-[#1e2035] text-slate-300";
+
+  const label = depth === 0 ? "·" : node.char.toUpperCase();
 
   return (
     <div className="flex flex-col items-center">
-      {/* Node circle */}
-      <div className="flex flex-col items-center gap-0.5 relative">
-        <div
-          className={`w-10 h-10 rounded-full flex items-center justify-center font-mono font-bold text-sm border-2 transition-all shadow-sm ${
-            depth === 0
-              ? 'border-border bg-bg-secondary text-text-muted text-xs shadow-none'
-              : node.isEnd && isActive
-              ? 'border-emerald-400 bg-emerald-400/20 text-emerald-400 shadow-emerald-400/30'
-              : node.isEnd
-              ? 'border-emerald-400/60 bg-emerald-400/10 text-emerald-300'
-              : isActive
-              ? 'border-indigo-400 bg-indigo-400/20 text-indigo-400 shadow-indigo-400/30'
-              : 'border-border bg-bg-card text-text-primary'
-          }`}
-        >
-          {depth === 0 ? 'root' : node.char.toUpperCase()}
+      <div className="relative flex flex-col items-center">
+        <div className={`w-11 h-11 rounded-full flex items-center justify-center font-mono font-bold text-sm border-2 transition-all duration-300 ${ringColor}`}>
+          {label}
         </div>
-        {node.isEnd && depth > 0 && (
-          <div className="absolute top-[100%] mt-0.5 text-[8px] font-mono font-bold px-1 rounded bg-emerald-400 text-bg-primary tracking-wider">END</div>
+        {isEnd && (
+          <span className="absolute -bottom-3 text-[8px] font-bold px-1 rounded bg-emerald-500 text-black tracking-wider">
+            END
+          </span>
         )}
       </div>
 
-      {/* Children */}
-      {children.length > 0 && (
-        <div className="flex gap-4 mt-5 relative">
-          {/* Main Connector line from parent */}
-          <div className="absolute top-0 left-1/2 w-px h-5 -translate-x-px -translate-y-5 bg-border" />
-          
-          {/* Horizontal cross-bar bridging siblings */}
-          {children.length > 1 && (
-             <div className="absolute top-0 left-0 right-0 h-px bg-border -translate-y-5" style={{ 
-                 // precise width tricky without measuring, but flex distributes evenly. Let's rely on standard connectors
-                 marginLeft: '10%', marginRight: '10%' 
-             }} />
+      {childIds.length > 0 && (
+        <div className="relative flex gap-3 mt-7 pt-2">
+          {/* vertical stem */}
+          <div className="absolute top-0 left-1/2 w-px h-3 -translate-x-px -translate-y-3 bg-white/10" />
+          {/* horizontal bar */}
+          {childIds.length > 1 && (
+            <div className="absolute top-0 h-px bg-white/10" style={{ left: "10%", right: "10%", top: "0px" }} />
           )}
 
-          {children.map(childId => (
-            <div key={childId} className="flex flex-col items-center relative">
-              <div className="absolute top-0 w-px h-5 bg-border -translate-y-5" />
-              <TrieNodeComponent id={childId} nodes={nodes} activeIds={activeIds} depth={depth + 1} />
+          {childIds.map(cid => (
+            <div key={cid} className="flex flex-col items-center relative">
+              <div className="absolute top-0 w-px h-3 bg-white/10 -translate-y-3" />
+              {/* edge label */}
+              <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-mono text-white/30">
+                {nodes[cid]?.char.toUpperCase()}
+              </div>
+              <TrieNodeViz id={cid} nodes={nodes} activeIds={activeIds} depth={depth + 1} />
             </div>
           ))}
         </div>
@@ -189,20 +75,166 @@ function TrieNodeComponent({
   );
 }
 
-const defaultOps: { type: 'insert' | 'search' | 'delete'; word: string }[] = [
-  { type: 'insert', word: 'apple' },
-  { type: 'insert', word: 'app' },
-  { type: 'insert', word: 'apply' },
-  { type: 'insert', word: 'apt' },
-  { type: 'insert', word: 'bat' },
+// ─── Theory ───────────────────────────────────────────────────────────────────
+const THEORY = {
+  title: "Trie (Prefix Tree)",
+  description: "A Trie (pronounced 'try') is a tree-like data structure where each path from root to a node represents a prefix. It is incredibly efficient for string operations — search, insert, and delete all take O(L) time where L is the string length, regardless of how many words are stored.",
+  descriptionHi: "Trie ek tree-shaped data structure hai jisme root se kisi bhi node tak ka raasta ek prefix represent karta hai. String operations — insert, search, delete — sab O(L) mein hote hain, jahan L word ki length hai. Dictionary mein kitne bhi words ho, speed same rehti hai!",
+  complexities: [
+    { case: "Insertion",   time: "O(L)", space: "O(L)", note: "L = length of the word being inserted" },
+    { case: "Search",      time: "O(L)", space: "O(1)", note: "Blazing fast prefix matching" },
+    { case: "Deletion",    time: "O(L)", space: "O(1)", note: "Prunes leaf nodes bottom-up" },
+  ],
+  useCases: [
+    "Autocomplete & type-ahead suggestions (Google, phones)",
+    "Spell checkers and dictionary lookups",
+    "IP routing — longest prefix matching",
+    "Word games like Boggle or crossword solvers",
+  ],
+  useCasesHi: [
+    "Autocomplete & type-ahead suggestions (Google, phone keyboard)",
+    "Spell checker aur dictionary implementations",
+    "IP routing — longest prefix matching",
+    "Word games jaise Boggle ya crossword solvers",
+  ],
+  analogy: {
+    icon: "🗄️",
+    title: "A Nested Filing Cabinet",
+    titleHi: "Nested Folders wali Filing Cabinet",
+    desc: "Imagine a cabinet with 26 drawers (A-Z). You open 'C', inside are more drawers for the 2nd letter. Open 'A', then 'T' — and you have found 'CAT'! A Trie is exactly this: nested letter folders sharing common prefixes.",
+    descHi: "Socho ek cabinet hai jisme 26 drawers hain (A-Z). 'C' kholte ho, andar 2nd letter ke aur drawers hain. 'A' kholte ho, phir 'T' — 'CAT' mil gaya! Trie bilkul aise hi kaam karta hai — common prefix share karne wale nested folders.",
+  },
+  howItWorks: {
+    en: [
+      { icon: "🌱", text: "Start at root (empty node). Every word starts here." },
+      { icon: "🔡", text: "For each character, follow existing child or create a new node." },
+      { icon: "🏁", text: "Mark the last character's node as 'end of word' (the END badge)." },
+      { icon: "🔍", text: "Search: follow characters top-down. Miss any → word not found. Reach end node marked END → found!" },
+      { icon: "✂️", text: "Delete: unmark END. Then prune any leaf nodes that are now unused, bottom-up." },
+    ],
+    hi: [
+      { icon: "🌱", text: "Root se shuru karo (empty node). Har word yahi se start hota hai." },
+      { icon: "🔡", text: "Har character ke liye — existing child follow karo ya naya node banao." },
+      { icon: "🏁", text: "Last character ke node ko 'end of word' mark karo (END badge dikhta hai)." },
+      { icon: "🔍", text: "Search: characters follow karo upar se neeche. Koi miss → word nahi hai. END node mila → word found!" },
+      { icon: "✂️", text: "Delete: END unmark karo. Phir unused leaf nodes ko bottom-up prune karo." },
+    ],
+  },
+  readingTip: {
+    en: "Watch the active node (blue glow) travel down character by character. When it hits a green END badge, the word is stored there. Try inserting 'app' and 'apple' — see how they share the same 'a-p-p' path!",
+    hi: "Active node (blue glow) ko dekho jo step-by-step neeche travel karta hai. Jab green END badge milta hai, wahan word store hai. 'app' aur 'apple' dono insert karke dekho — dono 'a-p-p' path share karte hain!",
+  },
+  quote: {
+    en: '"A Trie doesn\'t search through words — it navigates through letters."',
+    hi: '"Trie words mein search nahi karta — woh letters mein navigate karta hai."',
+  },
+  pseudocode: `function insert(root, word):
+    curr = root
+    for each char in word:
+        if char not in curr.children:
+            curr.children[char] = new TrieNode()
+        curr = curr.children[char]
+    curr.isEndOfWord = true
+
+function search(root, word):
+    curr = root
+    for each char in word:
+        if char not in curr.children:
+            return false   // word not found
+        curr = curr.children[char]
+    return curr.isEndOfWord
+
+function delete(root, word):
+    traverse to end of word
+    unmark isEndOfWord = false
+    prune leaf nodes bottom-up (if no children and not end of another word)`,
+  code: {
+    language: "java",
+    content: `class TrieNode {
+    TrieNode[] ch = new TrieNode[26];
+    boolean isEnd = false;
+}
+
+class Trie {
+    TrieNode root = new TrieNode();
+
+    void insert(String word) {
+        TrieNode cur = root;
+        for (char c : word.toCharArray()) {
+            int i = c - 'a';
+            if (cur.ch[i] == null) cur.ch[i] = new TrieNode();
+            cur = cur.ch[i];
+        }
+        cur.isEnd = true;
+    }
+
+    boolean search(String word) {
+        TrieNode cur = root;
+        for (char c : word.toCharArray()) {
+            int i = c - 'a';
+            if (cur.ch[i] == null) return false;
+            cur = cur.ch[i];
+        }
+        return cur.isEnd;
+    }
+
+    boolean startsWith(String prefix) {
+        TrieNode cur = root;
+        for (char c : prefix.toCharArray()) {
+            int i = c - 'a';
+            if (cur.ch[i] == null) return false;
+            cur = cur.ch[i];
+        }
+        return true;
+    }
+}`,
+  },
+  example: {
+    array: [] as number[],
+    steps: [
+      { desc: 'Insert "cat": root → c → a → t (marked END). 3 new nodes created.', descHi: '"cat" insert: root → c → a → t (END mark). 3 naye nodes bane.', array: [], highlight: [] },
+      { desc: 'Insert "car": root → c → a (shared!) → r (marked END). Only 1 new node.', descHi: '"car" insert: root → c → a (shared!) → r (END). Sirf 1 naya node!', array: [], highlight: [] },
+      { desc: 'Search "cat": follow c→a→t. Node is END → FOUND ✓', descHi: '"cat" search: c→a→t follow karo. Node END hai → FOUND ✓', array: [], highlight: [] },
+      { desc: 'Search "ca": follow c→a. Node is NOT END → not a stored word (just a prefix).', descHi: '"ca" search: c→a. Node END nahi hai → stored word nahi (sirf prefix).', array: [], highlight: [] },
+    ],
+  },
+  quiz: [
+    {
+      q: 'Insert "car" and "cat" into an empty Trie. How many nodes are created (excluding root)?',
+      options: ["6", "4", "5", "3"],
+      answer: 1,
+    },
+    {
+      q: "What is the time complexity of searching a word of length L in a Trie with N words?",
+      options: ["O(N)", "O(N × L)", "O(L)", "O(log N)"],
+      answer: 2,
+    },
+    {
+      q: "What does the END badge on a node signify?",
+      options: ["Node has no children", "A complete word ends at this node", "Node is at the deepest level", "Node was recently deleted"],
+      answer: 1,
+    },
+  ],
+};
+
+const defaultOps: { type: "insert" | "search" | "delete"; word: string }[] = [
+  { type: "insert", word: "apple" },
+  { type: "insert", word: "app" },
+  { type: "insert", word: "apply" },
+  { type: "insert", word: "apt" },
+  { type: "insert", word: "bat" },
+  { type: "search", word: "app" },
+  { type: "search", word: "bat" },
 ];
+
+const RANDOM_WORDS = ["cat","car","card","care","bat","ball","bad","can","cap","cut","dog","dot","do","door","bit","big"];
 
 export default function TriePage() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [trieState, setTrieState] = useState<{ root: string; nodes: TrieMap } | null>(null);
-  
-  const [inputValue, setInputValue] = useState("");
-  const [operations, setOperations] = useState<{ type: 'insert' | 'search' | 'delete'; word: string }[]>(defaultOps);
+  const [inputValue, setInputValue]   = useState("");
+  const [operations, setOperations]   = useState(defaultOps);
+  const [opMode, setOpMode]           = useState<"insert" | "search" | "delete">("insert");
 
   const {
     steps, currentStepIndex, isPlaying, speed,
@@ -212,16 +244,13 @@ export default function TriePage() {
 
   useEffect(() => {
     setAlgorithmId("trie");
-    const generatedSteps = generateTrieSteps(operations);
-    setSteps(generatedSteps);
+    setSteps(generateTrieSteps(operations));
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [operations, setAlgorithmId, setSteps]);
 
   useEffect(() => {
     const step = steps[currentStepIndex];
-    if (step?.values) {
-      setTrieState(step.values as { root: string; nodes: TrieMap });
-    }
+    if (step?.values) setTrieState(step.values as { root: string; nodes: TrieMap });
   }, [currentStepIndex, steps]);
 
   useEffect(() => {
@@ -231,170 +260,129 @@ export default function TriePage() {
         else { setIsPlaying(false); if (timerRef.current) clearInterval(timerRef.current); }
       }, speed);
     } else if (timerRef.current) clearInterval(timerRef.current);
-    
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [isPlaying, currentStepIndex, steps.length, speed, stepForward, setIsPlaying]);
 
-  const handleClear = () => {
-    setOperations([]);
+  const clean = (v: string) => v.trim().toLowerCase().replace(/[^a-z]/g, "");
+
+  const handleOp = () => {
+    const val = clean(inputValue);
+    if (!val) return;
+    setOperations(prev => [...prev, { type: opMode, word: val }]);
+    setInputValue("");
+    setIsPlaying(true);
+  };
+
+  const handleRandomize = () => {
+    const picks = RANDOM_WORDS.sort(() => Math.random() - 0.5).slice(0, 5);
+    const ops = picks.map(w => ({ type: "insert" as const, word: w }));
+    ops.push({ type: "search", word: picks[0] });
+    setOperations(ops);
     resetVisualizer();
+    setTimeout(() => setIsPlaying(true), 50);
   };
 
-  const cleanInput = () => {
-      return inputValue.trim().toLowerCase().replace(/[^a-z]/g, '');
+  const currentStep = steps[currentStepIndex];
+  const activeIds   = currentStep?.nodeIds ?? [];
+  const nodeCount   = trieState?.nodes ? Object.keys(trieState.nodes).length - 1 : 0;
+
+  const modeColors = {
+    insert: "bg-indigo-600 hover:bg-indigo-500 text-white",
+    search: "bg-emerald-600 hover:bg-emerald-500 text-white",
+    delete: "bg-red-600/80 hover:bg-red-500 text-white",
   };
 
-  const handleInsert = () => {
-    const val = cleanInput();
-    if (!val) return;
-    setOperations(prev => [...prev, { type: 'insert', word: val }]);
-    setInputValue("");
-    setIsPlaying(true);
-  };
-
-  const handleSearch = () => {
-    const val = cleanInput();
-    if (!val) return;
-    setOperations(prev => [...prev, { type: 'search', word: val }]);
-    setInputValue("");
-    setIsPlaying(true);
-  };
-
-  const handleDelete = () => {
-    const val = cleanInput();
-    if (!val) return;
-    setOperations(prev => [...prev, { type: 'delete', word: val }]);
-    setInputValue("");
-    setIsPlaying(true);
-  };
-
-  const currentStepData = steps[currentStepIndex];
-  const activeIds = currentStepData?.nodeIds ?? [];
+  const stepDesc = currentStep?.description
+    ? currentStep.description
+        .replace(/"([^"]+)"/g, '<span class="text-[#cbff5e] font-bold">"$1"</span>')
+        .replace(/✓/g, '<span class="text-emerald-400">✓</span>')
+    : "Trie ready — koi word insert/search/delete karo!";
 
   return (
     <div className="bg-gray-50 dark:bg-[#080a12] min-h-screen">
       <VisualizerFrame
         title="Trie (Prefix Tree)"
-        description="A tree-like data structure where paths represent words. Perfect for blazing fast autocomplete and dictionary applications. Search time depends only on the length of the string, not the number of words stored."
-        complexity={{ time: 'L', space: 'L', difficulty: 'Medium' }}
+        description="A tree where every path from root spells a prefix. Insert, search, and delete any word in O(L) time — where L is just the word length."
+        complexity={{ time: "L", space: "ΣWORD", difficulty: "Medium" }}
         controls={
           <div className="flex flex-col gap-4 w-full">
-            {/* Action Center */}
-            <div className="flex flex-col lg:flex-row gap-3 items-center bg-white/5 border border-black/10 dark:border-white/10 rounded-xl p-4">
-              <div className="flex-1 w-full flex items-center gap-2">
-                <input
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleInsert();
-                  }}
-                  placeholder="Enter a word (a-z)..."
-                  className="flex-1 bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-indigo-500 transition-all font-mono"
-                />
-                
-                <div className="flex flex-wrap sm:flex-nowrap gap-2">
-                    <button
-                      onClick={handleInsert}
-                      className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-colors shadow-lg text-sm"
-                      title="Insert Word"
-                    >
-                      <Plus size={16} /> <span className="hidden sm:inline">Insert</span>
-                    </button>
-                    <button
-                      onClick={handleSearch}
-                      className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-colors shadow-lg text-sm"
-                      title="Search Word"
-                    >
-                      <Search size={16} /> <span className="hidden sm:inline">Search</span>
-                    </button>
-                    <button
-                      onClick={handleDelete}
-                      className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-red-600/80 hover:bg-red-500/90 text-white font-semibold transition-colors shadow-lg text-sm"
-                      title="Delete Word"
-                    >
-                      <XCircle size={16} /> <span className="hidden sm:inline">Delete</span>
-                    </button>
-                </div>
+            {/* Op mode selector + input */}
+            <div className="flex flex-col md:flex-row gap-3 bg-white/5 border border-black/10 dark:border-white/10 rounded-xl p-4">
+              {/* Mode tabs */}
+              <div className="flex gap-1 bg-black/10 dark:bg-black/30 rounded-lg p-1 shrink-0">
+                {(["insert","search","delete"] as const).map(m => (
+                  <button key={m} onClick={() => setOpMode(m)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${opMode === m ? modeColors[m] : "text-slate-500 hover:text-white"}`}>
+                    {m}
+                  </button>
+                ))}
               </div>
 
-              <div className="w-full lg:w-auto">
-                <button
-                  onClick={handleClear}
-                  className="w-full lg:w-auto flex justify-center items-center gap-2 px-5 py-2.5 rounded-lg border border-red-500/50 hover:bg-red-500/10 text-red-600 dark:text-red-400 font-semibold transition-colors shadow-sm text-sm"
-                  title="Clear Trie"
-                >
-                  <Trash2 size={16} /> <span className="hidden sm:inline">Clear</span>
+              <div className="flex-1 flex items-center gap-2">
+                <input
+                  type="text" value={inputValue}
+                  onChange={e => setInputValue(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleOp()}
+                  placeholder={`Word to ${opMode}...`}
+                  className="flex-1 bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-indigo-500 transition-all font-mono"
+                />
+                <button onClick={handleOp}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold transition-colors shadow-lg text-sm ${modeColors[opMode]}`}>
+                  {opMode === "insert" ? <Plus size={16}/> : opMode === "search" ? <Search size={16}/> : <XCircle size={16}/>}
+                  <span className="hidden sm:inline capitalize">{opMode}</span>
                 </button>
               </div>
+
+              <button onClick={() => { setOperations([]); resetVisualizer(); }}
+                className="flex justify-center items-center gap-2 px-4 py-2.5 rounded-lg border border-red-500/40 hover:bg-red-500/10 text-red-400 font-semibold transition-colors text-sm shrink-0">
+                <Trash2 size={15}/> <span className="hidden sm:inline">Clear</span>
+              </button>
             </div>
 
             <ControlBar
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-              onStepForward={stepForward}
-              onStepBackward={stepBackward}
-              onReset={() => {
-                setOperations(defaultOps);
-                resetVisualizer();
-              }}
-              onSpeedChange={setSpeed}
-              isPlaying={isPlaying}
-              currentStep={currentStepIndex}
-              totalSteps={steps.length}
-              speed={speed}
+              onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)}
+              onStepForward={stepForward} onStepBackward={stepBackward}
+              onReset={() => { setOperations(defaultOps); resetVisualizer(); }}
+              onSpeedChange={setSpeed} isPlaying={isPlaying}
+              currentStep={currentStepIndex} totalSteps={steps.length} speed={speed}
+              stepDescription={stepDesc} onRandomize={handleRandomize}
             />
           </div>
         }
+        info={<TheoryCard {...THEORY} />}
       >
-        <div className="relative w-full h-full min-h-[450px] flex flex-col items-center">
-          {/* Step description overlay */}
-          <div className="absolute top-4 left-4 right-4 z-10 flex flex-col gap-2">
-            <div className="flex items-center gap-3">
-              <span className="px-3 py-1.5 rounded-md font-mono text-xs font-bold uppercase tracking-wider border border-amber-400/20 bg-amber-400/10 text-amber-400 shadow-sm">
-                {currentStepData?.type || "INIT"}
-              </span>
-              <span className="font-mono text-sm text-slate-700 dark:text-slate-300 drop-shadow-sm truncate">
-                {currentStepData?.description || "Ready to insert words..."}
-              </span>
-            </div>
-            {/* Operations Trail History / Legend */}
-            <div className="flex gap-4 text-[10px] font-mono mt-1 opacity-80 pl-2">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full border border-indigo-400 bg-indigo-400/20 inline-block"></span> Active
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full border border-emerald-400 bg-emerald-400/20 inline-block"></span> End of word
-              </span>
-            </div>
+        <div className="w-full h-full relative overflow-hidden">
+          {/* Header overlay */}
+          <div className="absolute top-3 left-3 right-3 z-10 flex items-center gap-2 pointer-events-none">
+            <span className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest border ${
+              currentStep?.type === "insert" ? "border-indigo-500/40 bg-indigo-500/10 text-indigo-300"
+              : currentStep?.type === "sorted" || currentStep?.type === "done" ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+              : currentStep?.type === "compare" || currentStep?.type === "visit" ? "border-amber-500/40 bg-amber-500/10 text-amber-300"
+              : currentStep?.type === "delete" ? "border-red-500/40 bg-red-500/10 text-red-300"
+              : "border-white/10 bg-white/5 text-slate-400"
+            }`}>{currentStep?.type ?? "init"}</span>
+            <span className="text-[11px] font-mono text-slate-400 truncate">{currentStep?.description ?? "Ready..."}</span>
           </div>
 
-          <div className="flex-1 w-full bg-transparent overflow-auto flex items-start justify-center pt-24 pb-12">
+          {/* Legend */}
+          <div className="absolute bottom-3 right-3 z-10 flex gap-3 text-[9px] font-mono pointer-events-none">
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-indigo-500 inline-block"/>Active</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"/>End of word</span>
+            <span className="text-white/20">Nodes: {nodeCount}</span>
+          </div>
+
+          {/* Trie canvas */}
+          <div className="w-full h-full overflow-auto flex items-start justify-center pt-14 pb-8 px-4">
             {trieState?.root && trieState.nodes[trieState.root] ? (
-              <TrieNodeComponent
-                id={trieState.root}
-                nodes={trieState.nodes}
-                activeIds={activeIds}
-              />
+              <TrieNodeViz id={trieState.root} nodes={trieState.nodes} activeIds={activeIds} />
             ) : (
-              <div className="text-text-muted font-mono text-sm m-auto opacity-50">Trie is empty</div>
+              <div className="m-auto text-slate-600 font-mono text-sm">
+                Trie is empty — insert a word to start!
+              </div>
             )}
           </div>
         </div>
       </VisualizerFrame>
-
-      <TheoryCard
-        title={TRIE_THEORY.title}
-        description={TRIE_THEORY.description}
-        descriptionHi={TRIE_THEORY.descriptionHi}
-        complexities={TRIE_THEORY.complexities}
-        pseudocode={TRIE_THEORY.pseudocode}
-        useCases={TRIE_THEORY.useCases}
-        useCasesHi={TRIE_THEORY.useCasesHi}
-        analogy={TRIE_THEORY.analogy}
-        code={TRIE_THEORY.code}
-        quiz={TRIE_THEORY.quiz}
-      />
     </div>
   );
 }

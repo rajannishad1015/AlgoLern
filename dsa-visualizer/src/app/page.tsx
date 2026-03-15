@@ -134,8 +134,8 @@ export default function LandingPage() {
           <ul className="landing-nav-links">
             <li><a href="#features" onClick={(e) => { e.preventDefault(); document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); }}>Topics</a></li>
             <li><a href="#viz" onClick={(e) => { e.preventDefault(); document.getElementById('viz')?.scrollIntoView({ behavior: 'smooth' }); }}>Visualizer</a></li>
-            <li><Link href="#">Practice</Link></li>
-            <li><Link href="#">Pricing</Link></li>
+            <li><Link href="https://github.com/rajannishad1015/AlgoLern/discussions">Practice</Link></li>
+            <li><Link href="https://github.com/sponsors/rajannishad1015">Pricing</Link></li>
           </ul>
 
           <Link href="/sorting/bubble" className="landing-btn-cta">
@@ -154,7 +154,7 @@ export default function LandingPage() {
             <div className="hero-eyebrow reveal">
               <span className="eyebrow-line"></span>
               <span className="eyebrow-tag">Interactive Platform</span>
-              <span>37+ Algorithms · Step-by-step Visualizations</span>
+              <span>38+ Algorithms · Step-by-step Visualizations</span>
             </div>
 
             <h1 className="hero-title reveal">
@@ -182,11 +182,11 @@ export default function LandingPage() {
       {/* STATS ROW */}
       <div className="stats-row">
         <div className="stat-item">
-          <div className="stat-num" data-target="37">0<sup>+</sup></div>
+          <div className="stat-num" data-target="38">0<sup>+</sup></div>
           <div className="stat-label">Algorithms covered</div>
         </div>
         <div className="stat-item">
-          <div className="stat-num" data-target="37">0</div>
+          <div className="stat-num" data-target="38">0</div>
           <div className="stat-label">Live visualizations</div>
         </div>
         <div className="stat-item">
@@ -257,13 +257,13 @@ export default function LandingPage() {
               <div className="fcard-num">03 / 06</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div className="fcard-icon"><Hexagon size={20} strokeWidth={1.5} /></div>
-                <span className="fcard-badge"><Square size={10} className="fill-current" strokeWidth={2.5} /> 7 Topics</span>
+                <span className="fcard-badge"><Square size={10} className="fill-current" strokeWidth={2.5} /> 8 Topics</span>
               </div>
               <h3 className="fcard-title">DATA<br/>STRUCTURES</h3>
               <ul className="fcard-algos">
-                <li>Arrays, Linked Lists, Stacks</li>
-                <li>Queues, Hash Tables, Trie</li>
-                <li>Segment Tree</li>
+                <li>Stack, Queue, Linked Lists (3 types)</li>
+                <li>Hash Table, Priority Queue, Deque</li>
+                <li>Segment Tree &amp; Fenwick Tree</li>
               </ul>
               <div className="fcard-cta">
                 <span>See Structures</span>
@@ -295,13 +295,13 @@ export default function LandingPage() {
               <div className="fcard-num">05 / 06</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div className="fcard-icon"><CircleDot size={20} strokeWidth={1.5} /></div>
-                <span className="fcard-badge"><Square size={10} className="fill-current" strokeWidth={2.5} /> 7 Topics</span>
+                <span className="fcard-badge"><Square size={10} className="fill-current" strokeWidth={2.5} /> 6 Topics</span>
               </div>
               <h3 className="fcard-title">GRAPH<br/>ALGORITHMS</h3>
               <ul className="fcard-algos">
-                <li>Dijkstra&apos;s shortest path</li>
-                <li>Kruskal&apos;s MST, Prim&apos;s</li>
-                <li>Topological Sort, Bellman-Ford</li>
+                <li>Dijkstra&apos;s &amp; Bellman-Ford shortest paths</li>
+                <li>Kruskal&apos;s MST &amp; Prim&apos;s</li>
+                <li>Floyd-Warshall &amp; BFS/DFS Traversal</li>
               </ul>
               <div className="fcard-cta">
                 <span>Map the Graph</span>
@@ -318,9 +318,9 @@ export default function LandingPage() {
               </div>
               <h3 className="fcard-title">ADVANCED</h3>
               <ul className="fcard-algos">
-                <li>Dynamic Programming patterns</li>
-                <li>Backtracking, Greedy</li>
-                <li>Divide & Conquer</li>
+                <li>Fibonacci DP — memoization table</li>
+                <li>N-Queens Backtracking live board</li>
+                <li>Greedy Activity Selection &amp; Sudoku</li>
               </ul>
               <div className="fcard-cta">
                 <span>Level Up</span>
@@ -329,24 +329,24 @@ export default function LandingPage() {
             </Link>
 
             {/* CARD 7: COMING SOON */}
-            <div className="fcard span2" style={{ display: 'flex', opacity: 0.6, cursor: 'not-allowed' }}>
-              <div className="fcard-num">COMING SOON</div>
+            <Link href="/system-design" className="fcard span2 group" style={{ display: 'flex' }}>
+              <div className="fcard-num">PREVIEW</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
                 <div className="fcard-icon"><Timer size={20} strokeWidth={1.5} /></div>
-                <h3 className="fcard-title">SYSTEM DESIGN<br/>& MORE</h3>
+                <h3 className="fcard-title text-black dark:text-white group-hover:text-indigo-500 transition-colors">SYSTEM DESIGN<br/>& MORE</h3>
                 <span className="fcard-badge"><Square size={10} className="fill-current" strokeWidth={2.5} /> IN PROGRESS</span>
               </div>
-              <ul className="fcard-algos">
+              <ul className="fcard-algos opacity-60">
                 <li>System Design Architectures</li>
                 <li>Machine Learning Algorithms</li>
                 <li>Object-Oriented Design (OOD)</li>
                 <li>Advanced System Mockups</li>
               </ul>
               <div className="fcard-cta">
-                <span>Stay Tuned</span>
-                <div className="cta-arrow" style={{ transform: 'none' }}>+</div>
+                <span>View Roadmap</span>
+                <div className="cta-arrow">+</div>
               </div>
-            </div>
+            </Link>
 
           </div>
         </div>
@@ -470,10 +470,10 @@ export default function LandingPage() {
             <div className="footer-logo"><span className="fa">ALGO</span>LERN</div>
             <p className="footer-note">© 2026 AlgoLern · Built for serious learners.</p>
             <ul className="footer-links">
-              <li><Link href="#">Privacy</Link></li>
-              <li><Link href="#">Terms</Link></li>
-              <li><Link href="#">GitHub</Link></li>
-              <li><Link href="#">Discord</Link></li>
+              <li><Link href="/">Privacy</Link></li>
+              <li><Link href="/">Terms</Link></li>
+              <li><Link href="https://github.com/rajannishad1015/AlgoLern">GitHub</Link></li>
+              <li><Link href="https://discord.gg/algolern">Discord</Link></li>
             </ul>
           </div>
         </div>

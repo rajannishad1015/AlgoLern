@@ -30,6 +30,8 @@ const sections = [
       { label: "Linear Search", href: "/searching/linear" },
       { label: "Binary Search", href: "/searching/binary" },
       { label: "Jump Search", href: "/searching/jump" },
+      { label: "Exponential Search", href: "/searching/exponential" },
+      { label: "Interpolation Search", href: "/searching/interpolation" },
     ],
   },
   {
@@ -80,6 +82,8 @@ const sections = [
     links: [
       { label: "DP — Fibonacci", href: "/advanced/fibonacci" },
       { label: "N-Queens", href: "/advanced/nqueens" },
+      { label: "Greedy Activity Selection", href: "/advanced/greedy" },
+      { label: "Sudoku Backtracking", href: "/advanced/sudoku" },
     ],
   },
 ];
